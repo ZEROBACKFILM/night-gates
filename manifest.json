@@ -1,0 +1,19 @@
+{
+  "name": "성문이 닫힌 밤",
+  "short_name": "성문이 닫힌 밤",
+  "description": "역병의 해, 봉쇄된 도시의 서른 밤을 다스리는 선택의 카드게임",
+  "id": "/night-gates/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0705",
+  "theme_color": "#120d07",
+  "lang": "ko",
+  "categories": ["games"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
