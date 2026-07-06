@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d0a07">
+<title>성문이 닫힌 밤</title>
+  <meta name="theme-color" content="#120d07">
+  <meta name="description" content="역병의 해, 봉쇄된 도시의 서른 밤을 다스리는 선택의 카드게임">
+  <meta property="og:title" content="성문이 닫힌 밤">
+  <meta property="og:description" content="왕은 성문을 닫으라 명했고, 영주는 도망쳤다. 이제 이 도시는 그대의 몫이다.">
+  <meta property="og:type" content="website">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Song+Myung&family=Gowun+Batang:wght@400;700&family=EB+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#0d0a07;
+  --vellum:#e8d8ad;
+  --vellum-dk:#c2ac7c;
+  --ink:#1b1308;
+  --ink-soft:#4a3a22;
+  --candle:#e09a3e;
+  --candle-hi:#f4c473;
+  --blood:#a03a2b;
+  --glow:224,154,62;
+  --c-f:#d9a84e; --c-m:#c9564a; --c-h:#8aa06e; --c-t:#8d9cab;
+}
+#app[data-act="2"]{--glow:186,164,74}
+#app[data-act="3"]{--glow:206,110,58}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#050403;overflow:hidden}
+body{font-family:'Gowun Batang',serif;color:var(--vellum);display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation}
+button{touch-action:manipulation}
+
+#app{position:relative;width:100%;max-width:430px;height:100%;max-height:960px;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
+  background:
+  radial-gradient(120% 90% at 50% -10%, #2a2014 0%, transparent 55%),
+  radial-gradient(140% 100% at 50% 115%, rgba(var(--glow),.15) 0%, transparent 50%),
+  var(--night);
+  overflow:hidden;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none;
+  transition:background 1.2s}
+
+/* ── ambience ── */
+#candleGlow{position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:radial-gradient(90% 55% at 50% 100%, rgba(var(--glow),.18) 0%, transparent 60%);
+  animation:flicker 4.2s ease-in-out infinite;transition:background 1s}
+@keyframes flicker{0%,100%{opacity:.85}18%{opacity:1}34%{opacity:.78}52%{opacity:.95}71%{opacity:.8}86%{opacity:.98}}
+.fog{position:absolute;left:-20%;width:140%;height:30%;bottom:-6%;pointer-events:none;z-index:2;opacity:.7;
+  background:radial-gradient(50% 60% at 30% 60%, rgba(120,110,90,.09), transparent 70%),
+             radial-gradient(45% 55% at 72% 45%, rgba(120,110,90,.07), transparent 70%);
+  filter:blur(6px);animation:drift 28s linear infinite alternate;transition:opacity 1.2s}
+#app[data-act="2"] .fog{opacity:1}
+#app[data-act="3"] .fog{opacity:1.35}
+@keyframes drift{from{transform:translateX(-4%)}to{transform:translateX(4%)}}
+#vig{position:absolute;inset:0;pointer-events:none;z-index:8;box-shadow:inset 0 0 110px 30px rgba(0,0,0,.7)}
+
+/* ── header ── */
+header{position:relative;z-index:5;padding:14px 20px 0}
+.hRow{display:flex;justify-content:space-between;align-items:baseline}
+#gameTitle{font-family:'Song Myung',serif;font-size:12px;letter-spacing:.32em;color:var(--vellum-dk)}
+#actChip{font-family:'Song Myung',serif;font-size:12px;letter-spacing:.18em;color:rgb(var(--glow));
+  text-shadow:0 0 10px rgba(var(--glow),.5)}
+#dayLine{font-family:'Song Myung',serif;font-size:23px;letter-spacing:.12em;color:var(--vellum);
+  text-align:center;margin-top:6px;text-shadow:0 0 16px rgba(var(--glow),.4)}
+#prog{position:relative;height:3px;margin:10px 2px 0;background:rgba(230,214,171,.14);border-radius:2px;overflow:visible}
+#progFill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;
+  background:linear-gradient(90deg, rgba(var(--glow),.55), rgb(var(--glow)));
+  box-shadow:0 0 8px rgba(var(--glow),.6);transition:width .6s ease}
+.notch{position:absolute;top:-2.5px;width:1.5px;height:8px;background:rgba(230,214,171,.4)}
+
+/* ── stats ── */
+#stats{position:relative;z-index:5;display:flex;justify-content:center;gap:18px;padding:12px 0 4px}
+.seal{position:relative;width:62px;text-align:center}
+.seal .orb{position:relative;width:52px;height:52px;margin:0 auto;border-radius:50%;overflow:hidden;
+  background:#120d08;border:1.5px solid rgba(230,214,171,.35);
+  box-shadow:0 3px 10px rgba(0,0,0,.6), inset 0 2px 6px rgba(0,0,0,.8);transition:border-color .3s}
+.seal .liq{position:absolute;left:0;right:0;bottom:0;height:50%;transition:height .5s cubic-bezier(.2,.8,.3,1)}
+.seal.f .liq{background:linear-gradient(180deg,#d9a84e,#8a6a30)}
+.seal.m .liq{background:linear-gradient(180deg,#c9564a,#6d241c)}
+.seal.h .liq{background:linear-gradient(180deg,#8aa06e,#4a5a3c)}
+.seal.t .liq{background:linear-gradient(180deg,#8d9cab,#46525e)}
+.seal svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;z-index:2;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.95))}
+.seal .lbl{font-size:12px;letter-spacing:.1em;color:var(--vellum-dk);margin-top:6px}
+.seal .lbl b{font-family:'Song Myung',serif;color:var(--vellum);margin-left:4px;font-weight:400}
+.seal.warn .orb{border-color:var(--blood);animation:warnB 1.6s ease-in-out infinite}
+@keyframes warnB{50%{box-shadow:0 0 14px rgba(160,58,43,.8), inset 0 2px 6px rgba(0,0,0,.8)}}
+.seal.pulse .orb{animation:pulse .45s ease}
+@keyframes pulse{40%{box-shadow:0 0 20px rgba(var(--glow),.9), inset 0 2px 6px rgba(0,0,0,.8)}}
+.delta{position:absolute;left:50%;top:-8px;transform:translateX(-50%);font-family:'Song Myung',serif;font-size:16px;
+  pointer-events:none;z-index:9;white-space:nowrap;text-shadow:0 1px 5px rgba(0,0,0,.95);
+  animation:dfloat .95s ease forwards}
+.delta.up{color:#a8d98f}.delta.down{color:#e57a63}
+.delta.press{color:#9a8fae;font-size:13px;animation-duration:1.15s}
+@keyframes dfloat{0%{opacity:0;transform:translate(-50%,6px)}18%{opacity:1;transform:translate(-50%,0)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-18px)}}
+
+/* ── card ── */
+#stage{position:relative;z-index:6;flex:1;display:flex;align-items:stretch;justify-content:center;perspective:1200px;
+  padding:10px 18px 4px;min-height:0}
+.card{position:relative;width:100%;display:flex;flex-direction:column;
+  border-radius:10px 14px 12px 15px / 14px 10px 15px 11px;
+  background:
+    radial-gradient(120% 80% at 30% 10%, rgba(255,246,220,.6), transparent 55%),
+    radial-gradient(90% 60% at 80% 100%, rgba(90,66,30,.4), transparent 60%),
+    radial-gradient(26% 16% at 84% 20%, rgba(122,88,40,.18), transparent 70%),
+    repeating-linear-gradient(93deg, rgba(80,60,28,.05) 0 2px, transparent 2px 5px),
+    linear-gradient(160deg, #eee0b6 0%, var(--vellum) 45%, #cbb586 100%);
+  box-shadow:0 22px 44px -12px rgba(0,0,0,.85), 0 6px 14px rgba(0,0,0,.5),
+    inset 0 0 0 1px rgba(255,240,200,.4), inset 0 0 30px rgba(84,60,25,.3);
+  transform-style:preserve-3d;will-change:transform;overflow:hidden}
+.card::after{content:"";position:absolute;inset:7px;border:1px solid rgba(74,58,34,.35);
+  border-radius:6px 10px 8px 11px;pointer-events:none}
+.corner{position:absolute;width:26px;height:26px;pointer-events:none;opacity:.55;z-index:2}
+.corner svg{width:100%;height:100%;display:block}
+.corner.tl{top:9px;left:9px}
+.corner.tr{top:9px;right:9px;transform:scaleX(-1)}
+.corner.bl{bottom:9px;left:9px;transform:scaleY(-1)}
+.corner.br{bottom:9px;right:9px;transform:scale(-1)}
+.card.deal{animation:deal .5s cubic-bezier(.2,.9,.25,1.1)}
+@keyframes deal{from{transform:translateY(40px) scale(.94) rotateX(10deg);opacity:0}to{transform:none;opacity:1}}
+.card.out{transition:transform .4s cubic-bezier(.5,0,.8,.4), opacity .4s;
+  transform:translateY(-40px) scale(.94) rotateX(-8deg);opacity:0}
+
+.portrait{position:relative;margin:15px 15px 0;flex:1;min-height:120px;border-radius:7px 10px 8px 11px;overflow:hidden;
+  background:radial-gradient(110% 90% at 50% 0%, #241a10 0%, #0f0b07 70%);
+  box-shadow:inset 0 0 0 1px rgba(60,44,20,.7), inset 0 -18px 30px rgba(0,0,0,.7)}
+.portrait svg{position:absolute;inset:0;width:100%;height:100%}
+.figLy,.artImg{animation:breathe 5.5s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.012) translateY(-1px)}}
+.artImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%;will-change:transform}
+.artFog{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg, rgba(15,11,7,.38) 0%, transparent 26%, transparent 68%, rgba(15,11,7,.6) 100%),
+  radial-gradient(120% 100% at 50% 45%, transparent 55%, rgba(10,7,4,.5) 100%)}
+.ly{will-change:transform;transition:transform .4s ease}
+.pGlow{position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 92%, rgba(var(--glow),.25), transparent 65%);
+  mix-blend-mode:screen;pointer-events:none;transition:background 1s}
+.mote{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(var(--glow),.75);
+  filter:blur(.5px);pointer-events:none;animation:mote 7s ease-in-out infinite}
+.mote.m2{width:2px;height:2px;animation-duration:9s;animation-delay:2.2s}
+.mote.m3{width:2px;height:2px;animation-duration:11s;animation-delay:4.6s}
+@keyframes mote{0%{opacity:0;transform:translateY(12px)}20%{opacity:.9}80%{opacity:.4}100%{opacity:0;transform:translateY(-46px) translateX(8px)}}
+
+.roleTag{font-size:11px;letter-spacing:.4em;text-indent:.4em;text-align:center;color:var(--ink-soft);
+  margin-top:12px;opacity:.85}
+.charName{font-family:'Song Myung',serif;text-align:center;font-size:17px;letter-spacing:.22em;text-indent:.22em;
+  color:var(--ink);margin-top:3px}
+.nameOrn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:5px;opacity:.5}
+.nameOrn::before,.nameOrn::after{content:"";width:44px;height:1px;background:linear-gradient(90deg,transparent,#4a3a22)}
+.nameOrn::after{transform:scaleX(-1)}
+.nameOrn i{width:5px;height:5px;background:#4a3a22;transform:rotate(45deg)}
+.cardText{font-size:16.5px;font-weight:700;line-height:1.72;color:var(--ink);text-align:center;
+  padding:9px 22px 17px;word-break:keep-all}
+
+/* ── choices ── */
+#choices{position:relative;z-index:6;display:flex;flex-direction:column;gap:9px;padding:12px 18px 18px}
+.opt{position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;
+  font-family:'Gowun Batang',serif;font-size:15.5px;font-weight:700;line-height:1.45;color:#efe3c4;
+  background:linear-gradient(160deg, #2b2113 0%, #1c1509 60%, #171008 100%);
+  border:1px solid rgba(var(--glow),.38);border-radius:6px;padding:13px 14px;word-break:keep-all;overflow:hidden;
+  box-shadow:0 4px 12px rgba(0,0,0,.55), inset 0 1px 0 rgba(244,196,115,.12);
+  transition:transform .12s, border-color .2s, box-shadow .2s;opacity:0;animation:optIn .35s forwards}
+.opt::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg, rgba(var(--glow),.7), rgba(var(--glow),.15))}
+.opt:nth-child(2){animation-delay:.05s}.opt:nth-child(3){animation-delay:.1s}.opt:nth-child(4){animation-delay:.15s}
+@keyframes optIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.opt:hover,.opt:focus-visible{border-color:rgb(var(--glow));outline:none;
+  box-shadow:0 4px 16px rgba(0,0,0,.6), 0 0 14px rgba(var(--glow),.28), inset 0 1px 0 rgba(244,196,115,.2)}
+.opt:active{transform:scale(.985)}
+.opt .num{flex:none;font-family:'Song Myung',serif;font-size:14px;width:27px;height:27px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:var(--candle-hi);
+  border:1px solid rgba(var(--glow),.55);background:rgba(var(--glow),.08)}
+.opt .txt{flex:1}
+.opt.chosen{border-color:var(--candle-hi);background:linear-gradient(160deg,#4a3618,#2b2113);
+  box-shadow:0 0 22px rgba(var(--glow),.45)}
+.opt:disabled{cursor:default}
+
+
+/* ── gamble result (맥락 문장 연출) ── */
+#gRes{position:absolute;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;
+  padding:44px;pointer-events:none;opacity:0;transition:opacity .4s;cursor:pointer;
+  background:radial-gradient(70% 50% at 50% 50%, rgba(5,4,3,.93), rgba(5,4,3,.62) 70%, transparent)}
+#gRes.show{opacity:1;pointer-events:auto}
+#gRes p{font-family:'Gowun Batang',serif;font-size:17.5px;font-weight:700;line-height:1.9;text-align:center;
+  max-width:300px;word-break:keep-all;color:#ecdcb2;text-shadow:0 0 20px rgba(224,154,62,.4), 0 2px 8px rgba(0,0,0,.9)}
+#gRes .tapHint{position:absolute;bottom:20%;left:0;right:0;text-align:center;
+  font-family:'Gowun Batang',serif;font-size:12px;letter-spacing:.24em;text-indent:.24em;
+  color:rgba(230,214,171,.55);animation:hintPulse 2s ease-in-out infinite}
+#app[data-lang="en"] #gRes .tapHint{font-family:'EB Garamond',serif;letter-spacing:.14em}
+
+/* ── ending: 장면을 전체 배경으로 ── */
+#ending{overflow:hidden}
+.endBg{position:absolute;inset:0;z-index:0}
+.endBg svg{width:100%;height:100%;display:block}
+.endScrim{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg, rgba(5,4,3,.5) 0%, rgba(5,4,3,.15) 30%, rgba(5,4,3,.62) 58%, rgba(5,4,3,.92) 100%)}
+#ending>*:not(.endBg):not(.endScrim){position:relative;z-index:2}
+#ending h1{text-shadow:0 2px 20px rgba(0,0,0,.9), 0 0 26px rgba(var(--glow),.45)}
+#ending .body{text-shadow:0 1px 10px rgba(0,0,0,.95);color:#e2d0a4}
+#endCause{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;padding:0 24px;
+  font-family:'Song Myung',serif;font-size:13px;letter-spacing:.08em;color:var(--vellum-dk);
+  line-height:1.7;word-break:keep-all;text-align:center;text-shadow:0 1px 8px rgba(0,0,0,.9)}
+#app[data-lang="en"] #endCause{font-family:'EB Garamond',serif;letter-spacing:.06em}
+#endCause i{width:11px;height:11px;border-radius:50%;flex:none;box-shadow:0 0 8px rgba(0,0,0,.6)}
+#endCause.f i{background:var(--c-f)}#endCause.m i{background:var(--c-m)}
+#endCause.h i{background:var(--c-h)}#endCause.t i{background:var(--c-t)}
+#endCause.hide{display:none}
+
+/* ── collection ── */
+.colBtn{margin-top:18px;background:none;border:none;color:var(--vellum-dk);font-family:'Gowun Batang',serif;
+  font-size:13.5px;letter-spacing:.08em;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+.colBtn:hover{color:var(--vellum)}
+#colOv{justify-content:flex-start;overflow-y:auto;padding-top:56px;padding-bottom:40px}
+#colGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:20px;max-width:340px;width:100%}
+.colCell{border:1px solid rgba(230,214,171,.25);border-radius:6px;padding:8px;background:rgba(255,255,255,.02)}
+.colCell .thumb{aspect-ratio:16/9;border-radius:4px;overflow:hidden;background:#0c0906;
+  display:flex;align-items:center;justify-content:center}
+.colCell .thumb svg{width:100%;height:100%}
+.colCell .cName{font-family:'Song Myung',serif;font-size:12.5px;letter-spacing:.08em;color:var(--vellum);
+  margin-top:7px;text-align:center}
+.colCell.locked .thumb{color:#4a3f2c;font-family:'Song Myung',serif;font-size:22px}
+.colCell.locked .cName{color:#5a4f38}
+
+
+/* ── difficulty selector ── */
+#diffSeg{display:flex;gap:8px;margin-top:26px}
+#diffSeg button{font-family:'Song Myung',serif;font-size:14px;letter-spacing:.14em;text-indent:.14em;
+  padding:10px 18px;background:transparent;border:1px solid rgba(230,214,171,.3);border-radius:3px;
+  color:var(--vellum-dk);cursor:pointer;transition:all .25s}
+#diffSeg button.on{border-color:rgb(var(--glow));color:var(--vellum);
+  background:rgba(var(--glow),.12);box-shadow:0 0 16px rgba(var(--glow),.25)}
+#app[data-lang="en"] #diffSeg button{font-family:'EB Garamond',serif;letter-spacing:.08em}
+.diffDesc{margin-top:10px;font-size:12.5px;color:var(--vellum-dk);letter-spacing:.04em;min-height:1.4em}
+
+/* ── language toggle & EN typography ── */
+#langSeg{display:flex;gap:0;border:1px solid rgba(230,214,171,.35);border-radius:4px;overflow:hidden;flex:none}
+#langSeg button{font-family:'Song Myung',serif;font-size:11px;letter-spacing:.04em;padding:4px 10px;
+  background:transparent;border:none;color:var(--vellum-dk);cursor:pointer;transition:all .2s}
+#langSeg button.on{background:rgba(var(--glow),.2);color:var(--vellum)}
+#actChip{text-align:center;margin-top:7px}
+#app[data-lang="en"] :is(#gameTitle,#dayLine,#actChip,.charName,.overlay h1,.overlay .kicker,.overlay .days,.btn,.opt .num,#actOv .actNum,.colCell .cName,.delta){font-family:'EB Garamond',serif}
+#app[data-lang="en"] :is(.cardText,.overlay .body,.opt,.roleTag,#gRes p,.seal .lbl,.colBtn,.overlay .hint){font-family:'EB Garamond',serif}
+#app[data-lang="en"] #gameTitle{letter-spacing:.16em;font-size:11px}
+#app[data-lang="en"] .overlay h1{letter-spacing:.05em}
+#app[data-lang="en"] #dayLine{letter-spacing:.05em}
+#app[data-lang="en"] .charName{letter-spacing:.06em;text-indent:.06em}
+#app[data-lang="en"] .roleTag{letter-spacing:.24em;text-indent:.24em}
+#app[data-lang="en"] .btn{letter-spacing:.14em;text-indent:.14em}
+#app[data-lang="en"] .overlay .kicker{letter-spacing:.32em;text-indent:.32em}
+#app[data-lang="en"] .cardText{font-size:16px;line-height:1.6}
+#app[data-lang="en"] .opt{font-size:15px}
+
+/* ── overlays ── */
+.overlay{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:32px;background:
+  radial-gradient(100% 70% at 50% 110%, rgba(var(--glow),.12), transparent 55%), rgba(5,4,3,.95);
+  opacity:0;pointer-events:none;transition:opacity .6s}
+.overlay.show{opacity:1;pointer-events:auto}
+.overlay .kicker{font-size:13px;letter-spacing:.5em;text-indent:.5em;color:var(--vellum-dk)}
+.overlay h1{font-family:'Song Myung',serif;font-size:42px;letter-spacing:.16em;margin:18px 0 8px;line-height:1.35;
+  color:var(--vellum);text-shadow:0 0 26px rgba(var(--glow),.45)}
+.overlay .body{font-size:16px;line-height:1.95;color:#d4c194;max-width:310px;word-break:keep-all;margin-top:10px}
+.overlay .hint{font-size:13px;color:var(--vellum-dk);margin-top:20px;letter-spacing:.06em}
+.overlay .days{font-family:'Song Myung',serif;margin-top:26px;font-size:15px;letter-spacing:.22em;color:rgb(var(--glow))}
+.btn{margin-top:32px;font-family:'Song Myung',serif;font-size:16px;letter-spacing:.28em;text-indent:.28em;color:var(--vellum);
+  background:rgba(var(--glow),.06);border:1px solid rgba(230,214,171,.45);padding:15px 36px;border-radius:3px;cursor:pointer;
+  transition:all .25s;text-shadow:0 0 12px rgba(var(--glow),.45)}
+.btn:hover,.btn:focus-visible{background:rgba(var(--glow),.15);border-color:rgb(var(--glow));outline:none;
+  box-shadow:0 0 26px rgba(var(--glow),.3)}
+#ending.death h1{color:#d3705a;text-shadow:0 0 26px rgba(160,58,43,.6)}
+
+/* act interstitial */
+#actOv{cursor:pointer}
+#actOv .actNum{font-family:'Song Myung',serif;font-size:15px;letter-spacing:.6em;text-indent:.6em;color:rgb(var(--glow));
+  text-shadow:0 0 14px rgba(var(--glow),.6)}
+#actOv h1{font-size:52px}
+#actOv .body{font-style:normal}
+#actOv .hint{animation:hintPulse 2.4s ease-in-out infinite}
+@keyframes hintPulse{50%{opacity:.4}}
+
+@media (max-height:730px){
+  .cardText{font-size:15px;padding-bottom:13px}
+  .opt{padding:11px 13px;font-size:14.5px}
+  .seal .orb{width:46px;height:46px}
+  .overlay h1{font-size:34px}
+  #actOv h1{font-size:42px}
+}
+@media (prefers-reduced-motion:reduce){
+  #candleGlow,.fog,.mote,.figLy,.artImg{animation:none}
+  .card.deal,.opt{animation:none;opacity:1}
+}
+</style>
+</head>
+<body>
+<div id="app" data-act="1">
+  <div id="candleGlow"></div>
+  <div class="fog"></div>
+  <div id="vig"></div>
+
+  <header>
+    <div class="hRow">
+      <div id="gameTitle">성문이 닫힌 밤</div>
+      <div id="langSeg"><button data-l="ko" class="on">한글</button><button data-l="en">EN</button></div>
+    </div>
+    <div id="actChip">제1막 · 소문</div>
+    <div id="dayLine">첫째 밤</div>
+    <div id="prog"><div id="progFill"></div><div class="notch" style="left:33.3%"></div><div class="notch" style="left:73.3%"></div></div>
+  </header>
+
+  <div id="stats">
+    <div class="seal f" data-k="f"><div class="orb"><div class="liq"></div>
+      <svg viewBox="0 0 24 24"><path d="M12 21V8" stroke="#f5ecd2" stroke-width="1.8" stroke-linecap="round"/><path d="M12 8c-3-1-4-3.5-4-6 3 .5 4 3 4 6zm0 0c3-1 4-3.5 4-6-3 .5-4 3-4 6z" fill="#f5ecd2"/><path d="M12 14c-2.6-.8-3.6-2.8-3.6-5 2.6.4 3.6 2.6 3.6 5zm0 0c2.6-.8 3.6-2.8 3.6-5-2.6.4-3.6 2.6-3.6 5z" fill="#f5ecd2"/></svg>
+    </div><div class="lbl">식량<b>50</b></div></div>
+    <div class="seal m" data-k="m"><div class="orb"><div class="liq"></div>
+      <svg viewBox="0 0 24 24"><path d="M12 20.5S4 15 4 9.6C4 6.6 6.2 5 8.4 5c1.6 0 2.9.9 3.6 2.1C12.7 5.9 14 5 15.6 5 17.8 5 20 6.6 20 9.6c0 5.4-8 10.9-8 10.9z" fill="#f5ecd2"/></svg>
+    </div><div class="lbl">민심<b>50</b></div></div>
+    <div class="seal h" data-k="h"><div class="orb"><div class="liq"></div>
+      <svg viewBox="0 0 24 24"><path d="M12 2.5c3.4 4.6 6.2 8 6.2 11.6a6.2 6.2 0 1 1-12.4 0C5.8 10.5 8.6 7.1 12 2.5z" fill="#f5ecd2"/><path d="M9.3 14a3 3 0 0 0 2.2 3.4" stroke="#241a10" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+    </div><div class="lbl">위생<b>50</b></div></div>
+    <div class="seal t" data-k="t"><div class="orb"><div class="liq"></div>
+      <svg viewBox="0 0 24 24"><path d="M13.2 3l7 7-1.6 1.6-1-.4-7.2 7.2.4 1-1.4 1.4-2.6-2.6L3 21l-.8-.8 2.8-3.8L2.4 13.8 3.8 12.4l1 .4 7.2-7.2-.4-1L13.2 3z" fill="#f5ecd2"/></svg>
+    </div><div class="lbl">신뢰<b>50</b></div></div>
+  </div>
+
+  <div id="stage"></div>
+  <div id="gRes"><p></p><span class="tapHint"></span></div>
+  <div id="choices"></div>
+
+  <div class="overlay show" id="intro">
+    <div class="kicker">역병의 해</div>
+    <h1>성문이<br>닫힌 밤</h1>
+    <div class="body">왕은 성문을 닫으라 명했고,<br>영주는 도망쳤다.<br><br>이제 이 도시는 그대의 몫이다.<br>서른 밤을 버텨라.</div>
+    <div class="hint">결과는 겪어 봐야 안다.</div>
+    <div id="diffSeg">
+      <button data-d="easy">평온</button>
+      <button data-d="normal" class="on">표준</button>
+      <button data-d="hard">가혹</button>
+    </div>
+    <div class="diffDesc" id="diffDesc">권장 난이도</div>
+    <button class="btn" id="startBtn">촛불을 켜다</button>
+    <button class="colBtn" id="colBtn">엔딩 컬렉션 (0/10)</button>
+  </div>
+
+  <div class="overlay" id="actOv">
+    <div class="actNum" id="actNum">제 一 막</div>
+    <h1 id="actTitle">소문</h1>
+    <div class="body" id="actDesc"></div>
+    <div class="hint">화면을 누르면 밤이 시작된다</div>
+  </div>
+
+  <div class="overlay" id="colOv">
+    <div class="kicker">결말의 기록</div>
+    <h1 style="font-size:30px">엔딩 컬렉션</h1>
+    <div id="colGrid"></div>
+    <button class="btn" id="colClose">닫기</button>
+  </div>
+
+  <div class="overlay" id="ending">
+    <div class="endBg" id="endScene"></div>
+    <div class="endScrim"></div>
+    <div class="kicker" id="endKicker">최후</div>
+    <h1 id="endTitle"></h1>
+    <div id="endCause"><i></i><span></span></div>
+    <div class="body" id="endBody"></div>
+    <div class="days" id="endDays"></div>
+    <button class="btn" id="againBtn">다시, 첫째 밤으로</button>
+  </div>
+</div>
+
+<script>
+/* ══════════ 초상화 ══════════ */
+const DEFS=`<defs>
+  <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#221912"/><stop offset="1" stop-color="#0a0705"/></linearGradient>
+  <linearGradient id="rim" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e09a3e" stop-opacity="0"/><stop offset="1" stop-color="#f4c473"/></linearGradient>
+  <linearGradient id="rimL" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#e09a3e" stop-opacity="0"/><stop offset="1" stop-color="#f4c473"/></linearGradient>
+</defs>`;
+const BACK=`<g class="ly ly-back">
+  <rect width="200" height="200" fill="url(#bgGrad)"/>
+  <path d="M30 200 V90 Q30 40 100 38 Q170 40 170 90 V200 Z" fill="#171009" stroke="#2c2113" stroke-width="1.5"/>
+  <path d="M42 200 V95 Q42 52 100 50 Q158 52 158 95 V200 Z" fill="#0c0805"/>
+  <circle cx="152" cy="34" r="11" fill="#cdbf9c" opacity=".5"/>
+  <circle cx="149" cy="31" r="10" fill="#0d0a07" opacity=".85"/>
+</g>
+<g class="ly ly-mid">
+  <ellipse cx="60" cy="178" rx="90" ry="26" fill="#6b6250" opacity=".12"/>
+  <ellipse cx="150" cy="188" rx="80" ry="22" fill="#6b6250" opacity=".10"/>
+</g>`;
+const F='#14100a', F2='#1d160d';
+const FIGS={
+edwin:`<g class="ly ly-fig">
+  <path d="M35 200 Q40 130 68 116 L132 116 Q160 130 165 200 Z" fill="${F}"/>
+  <path d="M132 116 Q158 130 163 196" stroke="url(#rim)" stroke-width="2.5" fill="none"/>
+  <circle cx="100" cy="96" r="26" fill="${F2}"/>
+  <path d="M104 92 Q140 100 148 118 Q126 120 104 108 Z" fill="${F}"/>
+  <path d="M105 93 Q138 101 145 115" stroke="url(#rim)" stroke-width="2" fill="none"/>
+  <circle cx="95" cy="88" r="6.5" fill="#0a0705" stroke="#e09a3e" stroke-width="1.6" opacity=".9"/>
+  <ellipse cx="100" cy="62" rx="48" ry="9" fill="${F}"/>
+  <path d="M100 40 Q124 40 128 62 L72 62 Q76 40 100 40 Z" fill="${F}"/>
+  <path d="M126 45 Q130 52 128 61" stroke="url(#rim)" stroke-width="2" fill="none"/>
+  <path d="M62 62 Q100 68 138 62" stroke="url(#rim)" stroke-width="1.5" fill="none" opacity=".7"/>
+</g>`,
+mabel:`<g class="ly ly-fig">
+  <path d="M42 200 Q48 138 78 124 L122 124 Q152 138 158 200 Z" fill="${F}"/>
+  <path d="M122 124 Q150 138 156 196" stroke="url(#rim)" stroke-width="2.5" fill="none"/>
+  <circle cx="100" cy="94" r="27" fill="${F2}"/>
+  <path d="M74 92 Q72 58 100 56 Q128 58 126 92 Q120 74 100 72 Q80 74 74 92 Z" fill="${F}"/>
+  <path d="M126 90 Q129 64 104 57" stroke="url(#rim)" stroke-width="2" fill="none"/>
+  <path d="M124 108 Q132 118 128 132 L116 126 Z" fill="${F}"/>
+  <path d="M86 96 Q90 100 96 99" stroke="#e09a3e" stroke-width="1.4" fill="none" opacity=".55"/>
+  <path d="M106 96 Q110 100 116 99" stroke="#e09a3e" stroke-width="1.4" fill="none" opacity=".55"/>
+</g>`,
+baker:`<g class="ly ly-fig">
+  <path d="M34 200 Q40 140 70 126 L130 126 Q160 140 166 200 Z" fill="${F}"/>
+  <path d="M130 126 Q158 140 164 196" stroke="url(#rim)" stroke-width="2.5" fill="none"/>
+  <circle cx="100" cy="98" r="26" fill="${F2}"/>
+  <ellipse cx="100" cy="70" rx="34" ry="14" fill="${F}"/>
+  <ellipse cx="100" cy="64" rx="26" ry="12" fill="${F}"/>
+  <path d="M124 62 Q130 68 132 72" stroke="url(#rim)" stroke-width="2" fill="none"/>
+  <ellipse cx="140" cy="152" rx="20" ry="11" transform="rotate(-18 140 152)" fill="#3a2c16"/>
+  <ellipse cx="140" cy="150" rx="20" ry="10" transform="rotate(-18 140 152)" fill="none" stroke="#e09a3e" stroke-width="1.4" opacity=".7"/>
+</g>`,
+guard:`<g class="ly ly-fig">
+  <path d="M38 200 Q42 134 72 120 L128 120 Q158 134 162 200 Z" fill="${F}"/>
+  <path d="M128 120 Q156 134 160 196" stroke="url(#rim)" stroke-width="2.5" fill="none"/>
+  <path d="M60 128 Q52 118 58 108 L82 118 Z" fill="${F2}"/>
+  <path d="M140 128 Q148 118 142 108 L118 118 Z" fill="${F2}"/>
+  <path d="M74 96 Q74 62 100 60 Q126 62 126 96 L118 104 L82 104 Z" fill="${F2}"/>
+  <rect x="97" y="78" width="6" height="26" fill="#0a0705"/>
+  <path d="M124 92 Q128 70 104 61" stroke="url(#rim)" stroke-width="2" fill="none"/>
+  <line x1="152" y1="200" x2="152" y2="70" stroke="#2c2113" stroke-width="4"/>
+  <path d="M152 70 L146 52 L158 52 Z" fill="#3a2c16" stroke="#e09a3e" stroke-width="1.2"/>
+</g>`,
+priest:`<g class="ly ly-fig">
+  <path d="M46 200 Q52 132 80 120 L120 120 Q148 132 154 200 Z" fill="${F}"/>
+  <path d="M120 120 Q146 132 152 196" stroke="url(#rim)" stroke-width="2.5" fill="none"/>
+  <path d="M100 34 Q120 66 118 96 L82 96 Q80 66 100 34 Z" fill="${F2}"/>
+  <path d="M100 36 Q118 66 116 94" stroke="url(#rim)" stroke-width="2" fill="none"/>
+  <ellipse cx="100" cy="100" rx="14" ry="16" fill="#0a0705"/>
+  <g stroke="#e09a3e" stroke-width="2.4" opacity=".95"><line x1="100" y1="136" x2="100" y2="162"/><line x1="90" y1="145" x2="110" y2="145"/></g>
+</g>`,
+ratman:`<g class="ly ly-fig">
+  <path d="M44 200 Q46 150 64 132 Q84 112 116 118 Q146 126 154 200 Z" fill="${F}"/>
+  <path d="M116 118 Q144 128 152 196" stroke="url(#rim)" stroke-width="2.5" fill="none"/>
+  <circle cx="108" cy="102" r="20" fill="${F2}"/>
+  <path d="M92 96 Q86 78 108 74 Q130 78 126 98 Q118 84 100 86 Z" fill="${F}"/>
+  <line x1="46" y1="196" x2="150" y2="60" stroke="#2c2113" stroke-width="4"/>
+  <path d="M132 84 q-6 14 2 20 q8 -4 4 -20 q-2 -5 -6 0 z" fill="#0a0705" stroke="#e09a3e" stroke-width="1" opacity=".9"/>
+  <path d="M116 104 q-6 14 2 20 q8 -4 4 -20 q-2 -5 -6 0 z" fill="#0a0705" stroke="#e09a3e" stroke-width="1" opacity=".9"/>
+</g>`,
+refugee:`<g class="ly ly-fig">
+  <path d="M52 200 Q56 140 84 126 L112 126 Q138 140 142 200 Z" fill="${F}"/>
+  <path d="M98 60 Q120 70 118 100 Q100 92 80 100 Q78 70 98 60 Z" fill="${F2}"/>
+  <path d="M112 126 Q136 140 140 196" stroke="url(#rim)" stroke-width="2.5" fill="none"/>
+  <path d="M140 200 Q140 168 152 160 Q166 168 164 200 Z" fill="${F}"/>
+  <circle cx="152" cy="150" r="11" fill="${F2}"/>
+  <path d="M160 154 Q166 170 163 196" stroke="url(#rim)" stroke-width="2" fill="none"/>
+  <path d="M96 140 L152 168" stroke="${F2}" stroke-width="6" stroke-linecap="round"/>
+</g>`,
+envoy:`<g class="ly ly-fig">
+  <path d="M44 200 Q50 134 78 122 L122 122 Q150 134 156 200 Z" fill="${F}"/>
+  <path d="M122 122 Q148 134 154 196" stroke="url(#rim)" stroke-width="2.5" fill="none"/>
+  <circle cx="100" cy="96" r="24" fill="${F2}"/>
+  <path d="M76 88 Q78 64 104 64 Q126 66 124 84 L76 90 Z" fill="${F}"/>
+  <path d="M120 66 Q142 52 150 32 Q136 44 118 56 Z" fill="#3a2c16" stroke="#e09a3e" stroke-width="1.2"/>
+  <rect x="126" y="140" width="34" height="12" rx="6" transform="rotate(-24 143 146)" fill="#cdbf9c" opacity=".85"/>
+</g>`,
+merchant:`<g class="ly ly-fig">
+  <path d="M30 200 Q36 138 68 124 L132 124 Q164 138 170 200 Z" fill="${F}"/>
+  <path d="M132 124 Q162 138 168 196" stroke="url(#rim)" stroke-width="2.5" fill="none"/>
+  <path d="M62 132 q10 -12 20 0 q10 -12 20 0 q10 -12 20 0 q10 -12 18 0 l-4 12 l-72 0 Z" fill="#2c2113"/>
+  <path d="M64 130 q10 -10 18 0" stroke="#e09a3e" stroke-width="1.3" fill="none" opacity=".8"/>
+  <circle cx="100" cy="96" r="25" fill="${F2}"/>
+  <ellipse cx="100" cy="68" rx="30" ry="11" fill="${F}"/>
+  <circle cx="146" cy="160" r="3.4" fill="#e09a3e" opacity=".95"/>
+</g>`,
+child:`<g class="ly ly-fig">
+  <path d="M66 200 Q68 158 84 148 L116 148 Q132 158 134 200 Z" fill="${F}"/>
+  <path d="M116 148 Q130 158 132 196" stroke="url(#rim)" stroke-width="2.2" fill="none"/>
+  <circle cx="100" cy="124" r="22" fill="${F2}"/>
+  <path d="M80 118 Q80 98 100 96 Q120 98 120 118 Q112 106 100 106 Q88 106 80 118 Z" fill="${F}"/>
+  <path d="M119 116 Q121 100 103 97" stroke="url(#rim)" stroke-width="1.8" fill="none"/>
+</g>`,
+rats:`<g class="ly ly-fig">
+  <ellipse cx="70" cy="168" rx="26" ry="13" fill="${F}"/><path d="M48 166 Q40 158 44 150" stroke="${F}" stroke-width="4" fill="none"/>
+  <path d="M92 164 q14 -2 22 6" stroke="url(#rim)" stroke-width="1.6" fill="none"/>
+  <ellipse cx="126" cy="150" rx="22" ry="11" fill="${F2}"/><path d="M146 148 Q158 142 156 132" stroke="${F2}" stroke-width="3.5" fill="none"/>
+  <ellipse cx="108" cy="182" rx="24" ry="12" fill="${F}"/><path d="M130 180 Q142 176 144 166" stroke="${F}" stroke-width="4" fill="none"/>
+  <circle cx="86" cy="164" r="2" fill="#c94b38"/><circle cx="142" cy="147" r="2" fill="#c94b38"/><circle cx="126" cy="179" r="2" fill="#c94b38"/>
+</g>`,
+thief:`<g class="ly ly-fig">
+  <path d="M56 200 Q58 146 80 130 L112 132 Q136 146 140 200 Z" fill="${F}"/>
+  <path d="M112 132 Q134 146 138 196" stroke="url(#rimL)" stroke-width="2.5" fill="none"/>
+  <path d="M100 66 Q122 74 120 104 Q102 96 84 104 Q82 74 100 66 Z" fill="${F2}"/>
+  <path d="M118 140 Q146 126 152 104 Q160 122 148 142 Q134 152 120 150 Z" fill="#2c2113"/>
+  <path d="M150 106 Q158 122 148 140" stroke="url(#rim)" stroke-width="1.6" fill="none"/>
+</g>`
+};
+/* 실사 아트 슬롯 — 파일명 또는 base64를 넣으면 해당 캐릭터가 이미지로 교체됩니다.
+   예: ART.edwin='edwin.png' 또는 ART.edwin='data:image/webp;base64,...' */
+const ART={};
+
+const CORNER=`<svg viewBox="0 0 26 26" fill="none" stroke="#4a3a22" stroke-width="1.4" stroke-linecap="round">
+  <path d="M2 24 V8 Q2 2 8 2 H24"/><path d="M6 24 V10 Q6 6 10 6 H24" opacity=".5"/><circle cx="8" cy="8" r="1.5" fill="#4a3a22" stroke="none"/></svg>`;
+const MOTES=`<span class="mote" style="left:30%;bottom:18%"></span>
+  <span class="mote m2" style="left:62%;bottom:26%"></span>
+  <span class="mote m3" style="left:48%;bottom:12%"></span>`;
+function portraitSVG(key){
+  if(ART[key]){
+    return `<img class="artImg" src="${ART[key]}" alt="" draggable="false">
+    <div class="artFog"></div>${MOTES}<div class="pGlow"></div>`;
+  }
+  return `<svg class="bgLy" viewBox="0 0 200 200" preserveAspectRatio="none">${DEFS}${BACK}</svg>
+  <svg class="figLy" viewBox="0 0 200 200" preserveAspectRatio="xMidYMax meet">${DEFS}${FIGS[key]||FIGS.guard}</svg>
+  ${MOTES}<div class="pGlow"></div>`;
+}
+
+/* 성문이 닫힌 밤 v4 — 카드 데이터
+   구조: 3막 30일. beat=고정일 등장, crisis=조건 발동(1회), 나머지=막별 필러(전부 1회)
+   fx: f식량 m민심 h위생 t신뢰 */
+const PRESSURE={1:{h:-1},2:{h:-2,f:-1},3:{h:-3,f:-1,m:-1}};
+const ACTS={1:{range:[1,10]},2:{range:[11,22]},3:{range:[23,30]}};
+const CARDS=[
+
+/* ═══ 제1막 · Act I ═══ */
+
+{id:'b_gate',beat:1,act:1,char:'envoy',name:{ko:'왕의 전령',en:'The Royal Messenger'},role:{ko:'개막',en:'The Beginning'},
+ text:{ko:'왕의 칙령이 도착했다. "역병이 잦아들 때까지 어느 성문도 열지 말라." 영주는 시골 별장으로 떠났고, 도시의 열쇠는 그대의 손에 남았다.',
+ en:'The King\'s decree has arrived: "Let no gate open until the plague has passed." The lord has fled to his country estate, and the keys of the city remain in your hands.'},
+ opts:[
+  {lbl:{ko:'오늘 밤 안으로 성문을 닫는다',en:'Close the gates before nightfall'},fx:{t:8,m:-6}},
+  {lbl:{ko:'하루 말미를 주고 닫는다',en:'Grant one day\'s grace, then close them'},fx:{m:8,h:-6}},
+  {lbl:{ko:'떠날 상인들만 내보내고 닫는다',en:'Let the departing merchants out, then close'},fx:{f:6,m:-3,h:-4}}
+ ]},
+
+{id:'b_first',beat:5,act:1,char:'mabel',name:{ko:'세탁부 메이블',en:'Mabel the Washerwoman'},role:{ko:'첫 환자',en:'The First Case'},
+ text:{ko:'"빨래를 맡기러 온 하인이 그러는데... 그 집 마님 겨드랑이에 검은 멍울이 잡혔대요. 아직 아무도 몰라요. 저랑 나리만 알아요."',
+ en:'"A servant came by with the laundry and told me... his mistress has dark lumps under her arm. No one knows yet. Just me and you, my lord."'},
+ opts:[
+  {lbl:{ko:'그 집을 조용히 격리한다',en:'Quietly quarantine the house'},fx:{h:9,t:-4}},
+  {lbl:{ko:'광장에 방을 붙여 알린다',en:'Post notices in the square'},fx:{h:12,m:-10}},
+  {lbl:{ko:'헛소문으로 묻는다',en:'Bury it as idle gossip'},fx:{m:4,h:-10}}
+ ]},
+
+{id:'b_death',beat:10,act:1,char:'edwin',name:{ko:'의사 에드윈',en:'Edwin the Physician'},role:{ko:'첫 죽음',en:'The First Death'},
+ text:{ko:'"첫 사망자입니다. 사인을 공표하셔야 합니다. 지금 숨기면... 나중에 더 큰 값을 치르게 됩니다."',
+ en:'"The first death, my lord. You must announce the cause. Hide it now... and we will pay a far greater price later."'},
+ opts:[
+  {lbl:{ko:'역병이라 공표한다',en:'Declare it the plague'},fx:{m:-11,h:10,t:4}},
+  {lbl:{ko:'철마다 도는 열병이라 둘러댄다',en:'Call it a passing seasonal fever'},fx:{m:4,h:-9}},
+  {lbl:{ko:'공표하고, 대비책도 함께 알린다',en:'Announce it — with countermeasures'},fx:{m:-5,h:8,f:-6}}
+ ]},
+
+{id:'a1_grain',act:1,char:'baker',name:{ko:'빵집 주인 바트',en:'Bart the Baker'},role:{ko:'시장',en:'The Market'},
+ text:{ko:'"밀값이 벌써 뛰고 있소. 큰 상인들이 창고에 쟁여두기 시작했단 말이오. 이대로면 보름 안에 서민들은 빵 구경도 못 하오."',
+ en:'"Wheat prices are already climbing. The big merchants have started hoarding. At this rate, the common folk won\'t see bread within a fortnight."'},
+ opts:[
+  {lbl:{ko:'매점매석을 단속한다',en:'Crack down on the hoarders'},fx:{f:9,m:4,t:-6}},
+  {lbl:{ko:'시장에 맡겨 둔다',en:'Let the market sort itself out'},fx:{f:-9}},
+  {lbl:{ko:'웃돈을 주고 관에서 사들인다',en:'Buy up the wheat at a premium'},fx:{f:5,m:-6}}
+ ]},
+
+{id:'a1_smuggle',act:1,char:'guard',name:{ko:'경비대장 로릭',en:'Captain Rorik'},role:{ko:'성벽',en:'The Walls'},
+ text:{ko:'"성문을 닫자마자 밀수꾼들이 개구멍을 찾기 시작했습니다. 초장에 본보기를 보여야 합니다."',
+ en:'"The moment we closed the gates, smugglers began sniffing for holes in the wall. We must make an example of them early."'},
+ opts:[
+  {lbl:{ko:'잡히는 대로 엄벌한다',en:'Punish every one we catch'},fx:{t:9,m:-8}},
+  {lbl:{ko:'곡물로 벌금을 물리고 풀어준다',en:'Fine them in grain and let them go'},fx:{t:4,f:4,m:-3}},
+  {lbl:{ko:'먹고살자는 짓이니 눈감아 준다',en:'They\'re only trying to eat — look away'},fx:{m:6,h:-6,t:-5}}
+ ]},
+
+{id:'a1_bell',act:1,char:'priest',name:{ko:'사제 오스문드',en:'Father Osmund'},role:{ko:'교회',en:'The Church'},
+ text:{ko:'"민심이 흉흉합니다. 아침마다 종을 울리고 기도를 올리게 해주십시오. 사람에게는 빵만큼이나 기댈 곳이 필요한 법입니다."',
+ en:'"The people are uneasy. Let me ring the bell each morning and hold prayers. People need something to lean on as much as they need bread."'},
+ opts:[
+  {lbl:{ko:'아침 기도회를 허락한다',en:'Allow the morning prayers'},fx:{m:8,h:-5}},
+  {lbl:{ko:'종소리만 울리게 한다',en:'Only the bell — no gatherings'},fx:{m:4}},
+  {lbl:{ko:'사람이 모이는 일은 다 금한다',en:'Forbid all gatherings'},fx:{m:-7,t:3}}
+ ]},
+
+{id:'a1_inquiry',act:1,char:'envoy',name:{ko:'영주의 전령',en:'The Lord\'s Envoy'},role:{ko:'별장에서',en:'From the Estate'},
+ text:{ko:'"영주께서 물으십니다. 소문이 사실인가? 도시에 병이 도는가? ...뭐라 답을 올릴까요."',
+ en:'"The lord asks: are the rumors true? Is there sickness in the city? ...What answer shall I carry back?"'},
+ opts:[
+  {lbl:{ko:'사실대로 고한다',en:'Tell him the truth'},fx:{t:-7,m:4}},
+  {lbl:{ko:'아직 확실치 않다고 답한다',en:'Say nothing is certain yet'},fx:{t:3}},
+  {lbl:{ko:'헛소문이라고 잡아뗀다',en:'Deny everything'},fx:{t:8,m:-5}}
+ ]},
+
+{id:'a1_father',act:1,char:'child',name:{ko:'골목의 아이',en:'The Child in the Alley'},role:{ko:'성문 앞',en:'At the Gate'},
+ text:{ko:'"나리, 성문 밖에 우리 아빠가 있어요. 장 보러 나갔다가 못 들어왔대요. 잠깐만... 잠깐만 열어주시면 안 돼요?"',
+ en:'"My lord, my papa is outside the gate. He went to the market and couldn\'t get back in. Could you open it? Just... just for a moment?"'},
+ opts:[
+  {lbl:{ko:'밤에 몰래 들여보낸다',en:'Slip him in after dark'},fx:{m:8,h:-8,t:-5}},
+  {lbl:{ko:'성벽 위에서 얼굴이라도 보게 해준다',en:'Let them see each other from the wall'},fx:{m:5}},
+  {lbl:{ko:'규칙에는 예외가 없다',en:'Rules admit no exceptions'},fx:{m:-8,t:4}}
+ ]},
+
+{id:'a1_salt',act:1,char:'merchant',name:{ko:'곡물 상인 발도',en:'Baldo the Grain Merchant'},role:{ko:'창고',en:'The Warehouse'},
+ text:{ko:'"제 창고에 소금이 좀 있습니다. 시세의 세 배면 넘기지요. 곧 다섯 배가 될 물건인데, 지금이 헐값입니다."',
+ en:'"I happen to have some salt in my warehouse. Three times the going rate and it\'s yours. It\'ll fetch five times before long — this is a bargain."'},
+ opts:[
+  {lbl:{ko:'부르는 값에 사들인다',en:'Pay his price'},fx:{f:8,m:-4}},
+  {lbl:{ko:'창고째 징발한다',en:'Seize the warehouse'},fx:{f:11,m:3,t:-8}},
+  {lbl:{ko:'거절한다',en:'Refuse'},fx:{f:-6}}
+ ]},
+
+{id:'a1_bath',act:1,char:'mabel',name:{ko:'세탁부 메이블',en:'Mabel the Washerwoman'},role:{ko:'우물가',en:'The Well'},
+ text:{ko:'"공중목욕탕을 닫으라는 명이 돌던데, 정말인가요? 사람 모이는 게 무섭긴 한데, 씻지도 못하면 그건 그거대로 병이 돌 텐데요."',
+ en:'"Is it true they\'re closing the bathhouse? Crowds are frightening, sure — but if people can\'t wash, that breeds its own kind of sickness."'},
+ opts:[
+  {lbl:{ko:'목욕탕을 닫는다',en:'Close the bathhouse'},fx:{h:6,m:-7}},
+  {lbl:{ko:'홀수 날만 연다',en:'Open it every other day'},fx:{h:2,m:2}},
+  {lbl:{ko:'그대로 연다',en:'Keep it open'},fx:{m:5,h:-6}}
+ ]},
+
+{id:'a1_rats',act:1,char:'ratman',name:{ko:'쥐잡이꾼 그림',en:'Grim the Rat-catcher'},role:{ko:'하수구',en:'The Sewers'},
+ text:{ko:'"요즘 쥐들이 이상합니다. 비틀거리다 대낮에 길바닥에서 죽어요. 삼십 년 쥐를 잡았지만... 이런 건 처음 봅니다."',
+ en:'"The rats have gone strange. They stagger and drop dead in broad daylight. Thirty years I\'ve caught rats... never seen the like."'},
+ opts:[
+  {lbl:{ko:'하수구 일대를 조사하게 한다',en:'Have him survey the sewers'},fx:{h:8,f:-4}},
+  {lbl:{ko:'쥐약을 풀고 삯을 치른다',en:'Lay poison and pay the cost'},fx:{h:5,f:-5}},
+  {lbl:{ko:'쥐 걱정할 때가 아니다',en:'We have bigger worries than rats'},fx:{h:-8}}
+ ]},
+
+{id:'a1_noble',act:1,char:'guard',name:{ko:'경비대장 로릭',en:'Captain Rorik'},role:{ko:'성문',en:'The Gate'},
+ text:{ko:'"귀족 나리 한 분이 사냥을 나가시겠다고 성문을 열라 하십니다. 지위가... 꽤 높으신 분입니다."',
+ en:'"A certain nobleman demands we open the gate for his hunt. A man of... considerable standing."'},
+ opts:[
+  {lbl:{ko:'규칙에 귀천은 없다',en:'The rules know no rank'},fx:{m:7,t:-7}},
+  {lbl:{ko:'열어드린다',en:'Open it for him'},fx:{t:7,m:-8}},
+  {lbl:{ko:'뒷문으로 조용히 내보낸다',en:'Let him out the back, quietly'},fx:{t:3,h:-5}}
+ ]},
+
+{id:'a1_fest',act:1,char:'baker',name:{ko:'빵집 주인 바트',en:'Bart the Baker'},role:{ko:'광장',en:'The Square'},
+ text:{ko:'"수확제가 코앞이오. 취소하자니 민심이 걱정이고, 열자니 병이 걱정이고. 나리라면 어쩌겠소?"',
+ en:'"The harvest festival is upon us. Cancel it and the people sour; hold it and the sickness spreads. What would you do, my lord?"'},
+ opts:[
+  {lbl:{ko:'축제를 연다',en:'Hold the festival'},fx:{m:10,h:-10}},
+  {lbl:{ko:'취소한다',en:'Cancel it'},fx:{m:-9,h:7}},
+  {lbl:{ko:'거리 배식으로 대신한다',en:'Hand out food in the streets instead'},fx:{m:5,f:-8}}
+ ]},
+
+{id:'a1_herb',act:1,char:'merchant',name:{ko:'떠돌이 약초꾼',en:'The Wandering Herbalist'},role:{ko:'수상한 자루',en:'A Dubious Sack'},
+ text:{ko:'"성문이 닫히기 전에 들여온 약초올시다. 열병에 직방이라는데... 솔직히 저도 진짜배긴지는 모릅니다. 싸게 드리리다."',
+ en:'"Herbs, brought in before the gates closed. They say it works wonders on fever... though honestly, I couldn\'t swear to it myself. I\'ll make you a fair price."'},
+ opts:[
+  {lbl:{ko:'사서 써 본다',en:'Buy it and try it'},gamble:{p:0.5,
+   win:{fx:{h:11,f:-4},txt:{ko:'약초는 진짜였다. 열이 내린 집이 하나둘 늘었다.',en:'The herbs were real. One by one, fevers began to break.'}},
+   lose:{fx:{h:-7,f:-4},txt:{ko:'자루의 태반이 마른 잡초였다. 은화만 버린 셈이다.',en:'Half the sack was dried weeds. Silver, wasted.'}}}},
+  {lbl:{ko:'자루째 압수해 태운다',en:'Seize the sack and burn it'},fx:{m:-5,h:3}},
+  {lbl:{ko:'돌려보낸다',en:'Send him away'},fx:{m:2}}
+ ]},
+
+{id:'a1_wedding',act:1,char:'child',name:{ko:'혼례를 앞둔 집',en:'A Wedding in Waiting'},role:{ko:'경사',en:'A Celebration'},
+ text:{ko:'"누나가 다음 주에 시집가요! 그런데 어른들이, 이런 때에 잔치를 열어도 되는 거냐고... 나리한테 여쭤보래요."',
+ en:'"My sister\'s getting married next week! But the grown-ups keep asking — is it right to hold a feast at a time like this? They told me to ask you, my lord."'},
+ opts:[
+  {lbl:{ko:'성대하게 치르게 한다',en:'Let them celebrate in style'},fx:{m:8,h:-7}},
+  {lbl:{ko:'가족끼리만 조용히 치르게 한다',en:'Family only, kept quiet'},fx:{m:3,h:-2}},
+  {lbl:{ko:'혼례를 미루게 한다',en:'Have them postpone it'},fx:{m:-6,h:3}}
+ ]},
+
+{id:'a1_dogs',act:1,char:'ratman',name:{ko:'쥐잡이꾼 그림',en:'Grim the Rat-catcher'},role:{ko:'개 소동',en:'The Dog Trouble'},
+ text:{ko:'"떠돌이 개가 병을 옮긴다는 소문에 사람들이 개를 때려잡고 있습니다. 한데 나리, 개가 없어지면... 쥐는 누가 잡습니까?"',
+ en:'"There\'s a rumor stray dogs carry the sickness, and now folk are clubbing them in the streets. But my lord — if the dogs go... who hunts the rats?"'},
+ opts:[
+  {lbl:{ko:'개 사냥을 금지한다',en:'Forbid the killing of dogs'},fx:{h:5,m:-4}},
+  {lbl:{ko:'관에서 거두어 기른다',en:'Have the city take them in'},fx:{h:4,f:-4}},
+  {lbl:{ko:'사람들이 하는 대로 둔다',en:'Let the people do as they will'},fx:{m:3,h:-6}}
+ ]},
+
+{id:'a1_letters',act:1,char:'envoy',name:{ko:'성벽의 바구니',en:'Baskets on the Wall'},role:{ko:'그리움',en:'Longing'},
+ text:{ko:'성벽 너머 가족에게 편지를 전하는 바구니 줄이 생겼다. 종이가 병을 옮긴다는 자도 있고, 사람을 살리는 건 결국 소식이라는 자도 있다.',
+ en:'A line of baskets now ferries letters over the wall to families outside. Some say paper carries the sickness. Others say that what keeps people alive, in the end, is word from those they love.'},
+ opts:[
+  {lbl:{ko:'자유롭게 오가게 둔다',en:'Let the baskets pass freely'},fx:{m:6,h:-4}},
+  {lbl:{ko:'연기에 쐬어 소독한 뒤 전한다',en:'Smoke the letters clean, then deliver'},fx:{m:4,f:-3}},
+  {lbl:{ko:'바구니 줄을 끊는다',en:'Cut the basket lines'},fx:{m:-6,h:3}}
+ ]},
+
+{id:'a1_ale',act:1,char:'baker',name:{ko:'빵집 주인 바트',en:'Bart the Baker'},role:{ko:'술집',en:'The Tavern'},
+ text:{ko:'"역병엔 독한 술이 약이라는 소문에 술집마다 미어터지오. 취해서 어깨동무하고 노래까지 부르니, 원."',
+ en:'"Word\'s gone round that strong drink wards off the plague, and now every tavern is bursting. Arms around shoulders, singing till dawn — honestly."'},
+ opts:[
+  {lbl:{ko:'술집에 통금을 건다',en:'Impose a tavern curfew'},fx:{h:6,m:-7}},
+  {lbl:{ko:'술에 몰래 물을 탄다',en:'Water down the ale in secret'},gamble:{p:0.5,
+   win:{fx:{h:5,m:3},txt:{ko:'아무도 눈치채지 못했다. 취객이 줄고 밤거리가 조용해졌다.',en:'No one noticed. The drunks thinned out, and the streets grew quiet.'}},
+   lose:{fx:{m:-9},txt:{ko:'물 탄 술이 들통났다. "우리를 뭘로 보는 거야!"',en:'The watered ale was found out. "What do you take us for!"'}}}},
+  {lbl:{ko:'내버려 둔다',en:'Leave them be'},fx:{m:5,h:-6}}
+ ]},
+
+/* ═══ 제2막 · Act II ═══ */
+
+{id:'b_cross',beat:11,act:2,char:'rats',name:{ko:'붉은 십자가',en:'The Red Crosses'},role:{ko:'제2막',en:'Act Two'},
+ text:{ko:'간밤에 여섯 집의 문에 붉은 십자가가 그려졌다. 도시는 이제 소문이 아니라 병과 함께 살고 있다.',
+ en:'In the night, red crosses appeared on six doors. The city no longer lives with rumors — it lives with the plague.'},
+ opts:[
+  {lbl:{ko:'감염 구역을 통째로 봉쇄한다',en:'Seal off the infected quarter'},fx:{h:10,m:-10}},
+  {lbl:{ko:'감염자를 성 밖 막사로 옮긴다',en:'Move the sick to camps outside the walls'},fx:{h:13,m:-14}},
+  {lbl:{ko:'집집마다 간호인을 붙인다',en:'Send caretakers into every house'},fx:{m:8,f:-8,h:-4}}
+ ]},
+
+{id:'b_lab',beat:16,act:2,char:'edwin',name:{ko:'의사 에드윈',en:'Edwin the Physician'},role:{ko:'금지된 연구',en:'Forbidden Work'},
+ text:{ko:'"죽은 자들을... 갈라 보았습니다. 나무라시기 전에 들어주십시오. 병이 지나가는 길목이 보입니다. 연구를 허락해 주십시오."',
+ en:'"I have... opened the dead. Hear me out before you condemn me. I can see the path the sickness travels. Let me continue my work."'},
+ opts:[
+  {lbl:{ko:'아무도 모르게 허락한다',en:'Permit it — in absolute secrecy'},fx:{t:-6,m:-3},flag:'lab'},
+  {lbl:{ko:'사제를 설득한 뒤 허락한다',en:'Persuade the priest first, then permit it'},fx:{m:-7,t:3},flag:'lab'},
+  {lbl:{ko:'죽은 자를 욕보일 수는 없다',en:'The dead will not be defiled'},fx:{h:-7,m:4}}
+ ]},
+
+{id:'b_cure',beat:20,act:2,req:'lab',char:'edwin',name:{ko:'의사 에드윈',en:'Edwin the Physician'},role:{ko:'한 줌의 빛',en:'A Handful of Light'},
+ text:{ko:'"약이 듣습니다! 열이 꺾인 자가 벌써 셋입니다. 다만... 온 도시에 쓰려면 곳간의 곡물이 절반은 필요합니다."',
+ en:'"The medicine works! Three fevers broken already. But to treat the whole city... I would need half the grain in the granary."'},
+ opts:[
+  {lbl:{ko:'곳간 절반을 내어준다',en:'Give him half the granary'},fx:{f:-13,h:12,m:6},flag:'cure'},
+  {lbl:{ko:'위중한 자에게만 쓴다',en:'Treat only the gravest cases'},fx:{f:-8,h:9}},
+  {lbl:{ko:'지금은 여력이 없다',en:'We cannot spare it'},fx:{m:-6,h:-3}}
+ ]},
+
+{id:'b_trial',beat:20,act:2,noreq:'lab',char:'priest',name:{ko:'사제 오스문드',en:'Father Osmund'},role:{ko:'단죄',en:'Judgment'},
+ text:{ko:'"에드윈이 시체를 갈랐다는 소문이 돕니다. 신성모독입니다. 재판에 세우지 않으면 교회가 직접 나설 것입니다."',
+ en:'"There are whispers that Edwin has been cutting open the dead. It is sacrilege. Put him on trial, or the Church will see to it herself."'},
+ opts:[
+  {lbl:{ko:'에드윈은 내가 지킨다',en:'Edwin is under my protection'},fx:{t:-6,m:-6,h:6}},
+  {lbl:{ko:'재판에 넘긴다',en:'Hand him over for trial'},fx:{m:7,h:-12}},
+  {lbl:{ko:'몰래 도시 밖으로 피신시킨다',en:'Smuggle him out of the city'},fx:{h:-8,m:3}}
+ ]},
+
+{id:'b_granary',beat:22,act:2,char:'guard',name:{ko:'곳간지기의 장부',en:'The Granary Ledger'},role:{ko:'제3막의 문턱',en:'The Threshold'},
+ text:{ko:'곳간지기가 장부를 들고 왔다. 남은 식량은 보름 치. 성문을 닫은 지 스물두 번째 날이었다.',
+ en:'The granary keeper came with his ledger. Fifteen days of food remain. It was the twenty-second day since the gates closed.'},
+ opts:[
+  {lbl:{ko:'배급을 절반으로 줄인다',en:'Cut rations by half'},fx:{f:10,m:-11}},
+  {lbl:{ko:'지금대로 간다',en:'Stay the course'},fx:{f:-10}},
+  {lbl:{ko:'귀족들의 개인 창고를 연다',en:'Open the nobles\' private stores'},fx:{f:12,t:-12,m:8}}
+ ]},
+
+{id:'a2_nurse',act:2,char:'mabel',name:{ko:'세탁부 메이블',en:'Mabel the Washerwoman'},role:{ko:'병상',en:'The Sickbeds'},
+ text:{ko:'"간호하던 이들이 하나둘 앓아누워요. 이제는 아픈 사람을 돌볼 사람이 없어요. 성한 사람들은 겁이 나서 문을 안 열고요."',
+ en:'"The ones doing the nursing are falling ill themselves. There\'s no one left to tend the sick — and the healthy are too afraid to open their doors."'},
+ opts:[
+  {lbl:{ko:'감형을 걸고 죄수들에게 맡긴다',en:'Offer prisoners shorter sentences to nurse'},fx:{h:6,m:-5,t:3}},
+  {lbl:{ko:'수녀원에 도움을 청한다',en:'Ask the convent for help'},fx:{h:7,m:3,f:-5}},
+  {lbl:{ko:'각자 제 식구를 돌보게 둔다',en:'Each family must tend its own'},fx:{h:-8}}
+ ]},
+
+{id:'a2_sick',act:2,char:'guard',name:{ko:'경비대장 로릭',en:'Captain Rorik'},role:{ko:'초소',en:'The Watch Post'},
+ text:{ko:'"경비병 둘이 열이 오릅니다. 숨기고라도 근무를 서겠다고 합니다. 지금 두 명이 빠지면 밤 순찰에 구멍이 납니다."',
+ en:'"Two of my men are running fevers. They want to hide it and stand their posts. If they drop out now, the night patrol has holes in it."'},
+ opts:[
+  {lbl:{ko:'즉시 격리한다',en:'Quarantine them at once'},fx:{t:-5,h:9}},
+  {lbl:{ko:'그대로 세워 둔다',en:'Keep them standing'},fx:{t:4,h:-10}},
+  {lbl:{ko:'급료를 얹어 주고 쉬게 한다',en:'Pay them extra and send them to rest'},fx:{f:-6,t:6,h:6}}
+ ]},
+
+{id:'a2_rites',act:2,char:'priest',name:{ko:'사제 오스문드',en:'Father Osmund'},role:{ko:'머리맡',en:'The Bedside'},
+ text:{ko:'"임종 기도를 청하는 집이 너무 많습니다. 사제들이 병자의 머리맡을 지키다 제가 먼저 쓰러질 판입니다."',
+ en:'"Too many houses are calling for last prayers. My priests keep vigil at bedside after bedside — I\'ll be the first to collapse."'},
+ opts:[
+  {lbl:{ko:'기도를 제한한다',en:'Restrict the prayers'},fx:{h:6,m:-9}},
+  {lbl:{ko:'계속하게 둔다',en:'Let them continue'},fx:{m:8,h:-8}},
+  {lbl:{ko:'창 너머로 기도를 올리게 한다',en:'Have prayers said through the window'},fx:{m:4,h:3}}
+ ]},
+
+{id:'a2_quack',act:2,char:'thief',name:{ko:'가짜 약장수',en:'The False Apothecary'},role:{ko:'뒷골목',en:'The Back Alley'},
+ text:{ko:'약재상 하나가 빈 병에 우물물을 담아 만병통치약이라 팔다가 잡혀 왔다. 병자의 가족들에게 은화를 쓸어 담았다고 한다.',
+ en:'An apothecary was caught selling well-water in empty bottles as a cure-all. He\'d been raking in silver from the families of the sick.'},
+ opts:[
+  {lbl:{ko:'광장 기둥에 묶어 세운다',en:'Bind him to the pillar in the square'},fx:{m:6,t:4}},
+  {lbl:{ko:'약값을 모두 물어내게 한다',en:'Make him repay every coin'},fx:{m:4}},
+  {lbl:{ko:'지푸라기라도 잡게 둔다',en:'Let them clutch at straws'},fx:{m:-7,h:-5}}
+ ]},
+
+{id:'a2_rope',act:2,char:'merchant',name:{ko:'곡물 상인 발도',en:'Baldo the Grain Merchant'},role:{ko:'성벽 아래',en:'Beneath the Walls'},
+ text:{ko:'"성벽 너머 상인들이 밧줄로 광주리를 올려 물건을 팝니다. 값이야 부르는 게 값이지만... 굶는 것보다야 낫지 않겠습니까."',
+ en:'"Merchants outside are hauling goods up the wall in baskets on ropes. The prices are robbery, of course... but better robbed than starved, no?"'},
+ opts:[
+  {lbl:{ko:'묵인한다',en:'Look the other way'},fx:{f:8,h:-7}},
+  {lbl:{ko:'거래를 관이 도맡는다',en:'The city takes over the trade'},fx:{f:12,m:-7,t:-4}},
+  {lbl:{ko:'밧줄을 모두 끊는다',en:'Cut every rope'},fx:{f:-8,h:6}}
+ ]},
+
+{id:'a2_digger',act:2,char:'child',name:{ko:'골목의 아이',en:'The Child in the Alley'},role:{ko:'묘지',en:'The Graveyard'},
+ text:{ko:'"묘지기 아저씨가 쓰러졌어요. 어른들이 그러는데, 이제 구덩이 팔 사람이 없대요. 그게... 무슨 뜻이에요?"',
+ en:'"The gravedigger collapsed. The grown-ups say there\'s no one left to dig the pits. What... what does that mean?"'},
+ opts:[
+  {lbl:{ko:'병사들을 보낸다',en:'Send soldiers'},fx:{t:-5,h:9}},
+  {lbl:{ko:'품삯을 걸고 일꾼을 모은다',en:'Post wages and hire diggers'},fx:{f:-7,h:8}},
+  {lbl:{ko:'며칠 미룬다',en:'Put it off a few days'},fx:{h:-11}}
+ ]},
+
+{id:'a2_report',act:2,char:'envoy',name:{ko:'영주의 전령',en:'The Lord\'s Envoy'},role:{ko:'보고',en:'The Report'},
+ text:{ko:'"영주께서 사망자 수를 보고하라 하십니다. 숫자가... 숫자가 좀 많습니다. 이대로 올려도 되겠습니까?"',
+ en:'"The lord demands a count of the dead. The number is... the number is rather large. Shall I send it up as it stands?"'},
+ opts:[
+  {lbl:{ko:'있는 그대로 보고한다',en:'Report it exactly'},fx:{t:-8,m:3}},
+  {lbl:{ko:'절반으로 줄여 보고한다',en:'Report half'},fx:{t:7}},
+  {lbl:{ko:'집계 중이라고 미룬다',en:'Say the count is still underway'},fx:{t:-4}}
+ ]},
+
+{id:'a2_oven',act:2,char:'baker',name:{ko:'빵집 주인 바트',en:'Bart the Baker'},role:{ko:'화덕',en:'The Ovens'},
+ text:{ko:'"화덕을 밤에도 돌리겠소. 빵 굽는 연기가 나쁜 공기를 태워 없앤다는 말이 있소. ...다들 그렇게 믿고 싶어 하오."',
+ en:'"I\'ll keep the ovens burning through the night. They say bread-smoke burns away the bad air. ...Folk want to believe it, anyway."'},
+ opts:[
+  {lbl:{ko:'장작을 대어 준다',en:'Supply him firewood'},fx:{m:7,f:-7}},
+  {lbl:{ko:'헛된 미신이라고 말한다',en:'Tell them it\'s empty superstition'},fx:{m:-6,h:3}},
+  {lbl:{ko:'믿게 내버려 둔다',en:'Let them believe'},fx:{m:5,h:-3}}
+ ]},
+
+{id:'a2_stream',act:2,char:'mabel',name:{ko:'세탁부 메이블',en:'Mabel the Washerwoman'},role:{ko:'빨래터',en:'The Washing Stones'},
+ text:{ko:'"강 하류 빨래터에 윗동네 병자 옷이 떠내려와요. 물길은 하나로 이어져 있는데, 다들 제 빨래만 해요."',
+ en:'"Sick-house laundry keeps drifting down to the lower washing stones. It\'s all one stream — but everyone only minds their own wash."'},
+ opts:[
+  {lbl:{ko:'빨래터를 위아래로 나눈다',en:'Divide the stream, upper and lower'},fx:{h:8,m:-4}},
+  {lbl:{ko:'삶아 빨도록 장작을 댄다',en:'Provide firewood to boil the wash'},fx:{h:6,f:-4}},
+  {lbl:{ko:'유난 떨 것 없다',en:'Enough fussing'},fx:{h:-9}}
+ ]},
+
+{id:'a2_flee',act:2,char:'guard',name:{ko:'경비대장 로릭',en:'Captain Rorik'},role:{ko:'밤의 성벽',en:'The Wall at Night'},
+ text:{ko:'"밤마다 성벽에 밧줄이 걸립니다. 도망치는 겁니다. 이 도시에서, 제 이웃을 두고."',
+ en:'"Every night, ropes over the wall. They\'re running. From this city — leaving their neighbors behind."'},
+ opts:[
+  {lbl:{ko:'경비를 늘려 막는다',en:'Tighten the watch'},fx:{t:5,m:-6,f:-3}},
+  {lbl:{ko:'못 본 척한다',en:'Pretend not to see'},fx:{m:4,f:3,h:-4}},
+  {lbl:{ko:'잡히면 광장에 세운다',en:'Put the caught ones in the square'},fx:{t:8,m:-10}}
+ ]},
+
+{id:'a2_widow',act:2,char:'refugee',name:{ko:'과부 한나',en:'Hanna the Widow'},role:{ko:'문 앞',en:'At the Door'},
+ text:{ko:'"남편이 어젯밤 숨을 거뒀어요. 한데 격리 표식이 붙으면 저희 애들은 굶어요. 아무도 삯일을 안 줄 테니까요. 나리, 하루만... 하루만 늦게 붙여주세요."',
+ en:'"My husband died in the night. But the moment that mark goes on our door, my children starve — no one hires from a marked house. One day, my lord... just one day\'s grace."'},
+ opts:[
+  {lbl:{ko:'표식을 붙이되 배급을 보낸다',en:'Mark the door — but send rations'},fx:{h:7,f:-6}},
+  {lbl:{ko:'하루 말미를 준다',en:'Grant her one day'},fx:{m:6,h:-8}},
+  {lbl:{ko:'규칙대로 즉시 붙인다',en:'Mark it now, as the rules demand'},fx:{h:8,m:-8}}
+ ]},
+
+{id:'a2_raid',act:2,char:'guard',name:{ko:'경비대장 로릭',en:'Captain Rorik'},role:{ko:'성 밖 원정',en:'The Foray'},
+ text:{ko:'"강 건너 버려진 마을에 곡식이 남아 있답니다. 병사들을 내보내 볼까요? ...다만 무엇을 묻혀 돌아올지는 모릅니다."',
+ en:'"There\'s grain left in an abandoned village across the river, they say. Shall I send men? ...Though there\'s no telling what they\'ll carry back."'},
+ opts:[
+  {lbl:{ko:'원정을 보낸다',en:'Send the foray'},gamble:{p:0.55,
+   win:{fx:{f:13,t:4},txt:{ko:'병사들이 곡식 수레를 끌고 돌아왔다. 성벽 위에서 환호가 터졌다.',en:'The men returned hauling carts of grain. Cheers broke out along the wall.'}},
+   lose:{fx:{h:-11,t:-3},txt:{ko:'수레 대신 열병을 싣고 돌아왔다. 원정대 절반이 앓아누웠다.',en:'They returned carrying fever instead of grain. Half the party took to their beds.'}}}},
+  {lbl:{ko:'지원자만 추려 보낸다',en:'Send volunteers only'},fx:{f:5,h:-4}},
+  {lbl:{ko:'위험을 무릅쓸 수 없다',en:'The risk is too great'},fx:{f:-4}}
+ ]},
+
+{id:'a2_bells',act:2,char:'priest',name:{ko:'사제 오스문드',en:'Father Osmund'},role:{ko:'애도의 종',en:'The Mourning Bell'},
+ text:{ko:'"사람이 죽을 때마다 종을 울리다 보니, 이제 도시가 하루 종일 웁니다. 종소리에 산 사람들 얼굴이 다 잿빛입니다."',
+ en:'"We ring the bell for every death, and now the city weeps all day long. The living walk about with ash-grey faces."'},
+ opts:[
+  {lbl:{ko:'종을 멈추게 한다',en:'Silence the bell'},fx:{m:6,t:-4}},
+  {lbl:{ko:'정오에 한 번만 모아 울린다',en:'Ring once at noon, for all'},fx:{m:3}},
+  {lbl:{ko:'죽음마다 울리게 둔다',en:'Let it toll for every death'},fx:{m:-6,t:3}}
+ ]},
+
+{id:'a2_orphans',act:2,char:'child',name:{ko:'남겨진 아이들',en:'The Children Left Behind'},role:{ko:'고아',en:'Orphans'},
+ text:{ko:'부모를 잃은 아이들이 스무 명을 넘겼다. 제일 큰 아이가 작은 아이들의 손을 잡고 배급소 앞에 줄을 선다.',
+ en:'The orphans now number more than twenty. The eldest takes the little ones by the hand and stands in line at the ration house.'},
+ opts:[
+  {lbl:{ko:'수도원에 맡기고 곡식을 댄다',en:'Send them to the convent, with grain'},fx:{m:7,f:-6}},
+  {lbl:{ko:'심부름 일을 주어 삯을 먹인다',en:'Give them errands and wages'},fx:{m:4,t:2,f:-3}},
+  {lbl:{ko:'지금은 도시 전체가 고아 신세다',en:'The whole city is orphaned now'},fx:{m:-8}}
+ ]},
+
+{id:'a2_stranger',act:2,char:'thief',name:{ko:'떠돌이 의원',en:'The Wandering Doctor'},role:{ko:'뜨내기',en:'The Drifter'},
+ text:{ko:'성벽을 넘어 들어온 떠돌이 의원이 잡혔다. "고칠 줄 압니다. 반쯤은." 에드윈은 사람 손이 하나라도 아쉽다는 얼굴이다.',
+ en:'A wandering doctor was caught climbing the wall — into the city. "I can heal. About half the time." Edwin looks like a man who would take any pair of hands.'},
+ opts:[
+  {lbl:{ko:'병상을 맡겨 본다',en:'Give him a ward to prove it'},gamble:{p:0.5,
+   win:{fx:{h:10},txt:{ko:'떠돌이 의원의 손은 진짜였다. 병상 몇이 비었다. 산 사람으로.',en:'The drifter\'s hands were true. Beds emptied — with the living.'}},
+   lose:{fx:{h:-8,m:-3},txt:{ko:'"반쯤"은 과장이었다. 그가 다녀간 병상마다 곡소리가 났다.',en:'"About half" was generous. Wailing followed him from bed to bed.'}}}},
+  {lbl:{ko:'에드윈 밑에서 허드렛일만 시킨다',en:'Chores under Edwin — nothing more'},fx:{h:4,f:-3}},
+  {lbl:{ko:'성벽을 넘은 죄부터 묻는다',en:'Charge him for scaling the wall'},fx:{t:4,m:-4}}
+ ]},
+
+{id:'a2_curfew',act:2,char:'guard',name:{ko:'경비대장 로릭',en:'Captain Rorik'},role:{ko:'통금',en:'The Curfew'},
+ text:{ko:'"밤마다 몰래 모여 술판에 도박판입니다. 병이 도는 건 낮보다 밤이 빠릅니다. 통금을 명해 주십시오."',
+ en:'"They gather in secret at night — drink, dice, the lot. The sickness moves faster by night than by day. Give the order, my lord."'},
+ opts:[
+  {lbl:{ko:'해가 지면 전면 통금',en:'Full curfew at sundown'},fx:{h:8,m:-8}},
+  {lbl:{ko:'자정부터만 통금',en:'Curfew from midnight only'},fx:{h:4,m:-3}},
+  {lbl:{ko:'밤까지 뺏을 수는 없다',en:'We won\'t take their nights too'},fx:{m:4,h:-6}}
+ ]},
+
+/* ═══ 제3막 · Act III ═══ */
+
+{id:'b_steward',beat:23,act:3,char:'thief',name:{ko:'곳간의 배신',en:'Betrayal at the Granary'},role:{ko:'제3막',en:'Act Three'},
+ text:{ko:'간밤에 곳간 자물쇠가 뜯겼다. 붙잡힌 자의 얼굴을 보고 경비병들이 굳었다. 배급소 관리인, 그대가 직접 앉힌 사람이었다.',
+ en:'In the night, the granary lock was broken. When the guards saw the thief\'s face, they froze. The ration master — the man you yourself appointed.'},
+ opts:[
+  {lbl:{ko:'교수대에 세운다',en:'Send him to the gallows'},fx:{t:8,m:-10}},
+  {lbl:{ko:'파면하고 조용히 묻는다',en:'Dismiss him and bury the matter'},fx:{t:3,m:-3}},
+  {lbl:{ko:'사정을 듣고 감형한다',en:'Hear him out, and show mercy'},fx:{m:7,t:-6}}
+ ]},
+
+{id:'b_ultimatum',beat:26,act:3,char:'envoy',name:{ko:'영주의 전령',en:'The Lord\'s Envoy'},role:{ko:'최후통첩',en:'The Ultimatum'},
+ text:{ko:'"영주의 친서입니다. \'열흘 안에 역병이 잡히지 않으면 도시를 태워 정화하겠다.\' ...농이 아니십니다. 답신을 주십시오."',
+ en:'"A letter under the lord\'s own seal: \'If the plague is not broken within ten days, I will burn the city clean.\' ...He is not jesting. He awaits your answer."'},
+ opts:[
+  {lbl:{ko:'역병은 꺾이고 있다고 답한다',en:'Reply that the plague is breaking'},fx:{t:5,m:-4}},
+  {lbl:{ko:'이 도시는 스스로 이겨낸다고 답한다',en:'Reply that this city will save itself'},fx:{t:-9,m:9}},
+  {lbl:{ko:'원군과 물자를 청한다',en:'Beg for men and supplies'},fx:{t:-4,f:6,m:-5}}
+ ]},
+
+{id:'b_lastnight',beat:30,act:3,char:'guard',name:{ko:'서른 번째 밤',en:'The Thirtieth Night'},role:{ko:'마지막 순찰',en:'The Last Round'},
+ text:{ko:'서른 번째 밤. 열이 꺾인 집이 늘고 있다는 보고가 올라왔다. 새벽 종이 울리면 이 밤도 끝난다. 마지막으로, 어디를 돌아보겠는가.',
+ en:'The thirtieth night. Reports say fevers are breaking, house by house. When the dawn bell rings, this night ends. One last round — where will you walk?'},
+ opts:[
+  {lbl:{ko:'병자들의 막사로 간다',en:'To the camps of the sick'},fx:{h:5}},
+  {lbl:{ko:'광장의 사람들 곁으로 간다',en:'To the people in the square'},fx:{m:5}},
+  {lbl:{ko:'성벽 위 병사들에게 간다',en:'To the soldiers on the wall'},fx:{t:5}}
+ ]},
+
+{id:'a3_wake',act:3,char:'priest',name:{ko:'사제 오스문드',en:'Father Osmund'},role:{ko:'무딘 슬픔',en:'A Dulled Grief'},
+ text:{ko:'"사람들이 죽음에 무뎌졌습니다. 장례에서 아무도 울지 않아요. 산 자들을 위해서라도 위령제를 올려야 합니다."',
+ en:'"The people have gone numb to death. No one weeps at funerals anymore. For the sake of the living, we must hold a vigil for the dead."'},
+ opts:[
+  {lbl:{ko:'위령제를 연다',en:'Hold the vigil'},fx:{m:9,h:-6,f:-4}},
+  {lbl:{ko:'역병이 끝난 뒤에 하자',en:'After the plague — not before'},fx:{m:-6}},
+  {lbl:{ko:'종을 서른 번 울리는 것으로 대신한다',en:'Thirty tolls of the bell instead'},fx:{m:4}}
+ ]},
+
+{id:'a3_edwin',act:3,char:'mabel',name:{ko:'세탁부 메이블',en:'Mabel the Washerwoman'},role:{ko:'걱정',en:'Worry'},
+ text:{ko:'"에드윈 선생님 손이 떨려요. 사흘을 못 잤대요. 환자보다 선생님이 먼저 쓰러지게 생겼어요."',
+ en:'"Edwin\'s hands are shaking. Three days without sleep, they say. He\'ll go before his patients do."'},
+ opts:[
+  {lbl:{ko:'하루를 강제로 쉬게 한다',en:'Force him to rest a day'},fx:{h:-4,m:5}},
+  {lbl:{ko:'조수를 붙여 준다',en:'Assign him an assistant'},fx:{f:-6,h:6}},
+  {lbl:{ko:'지금은 버텨 달라고 한다',en:'Ask him to hold on a little longer'},fx:{h:4,m:-5}}
+ ]},
+
+{id:'a3_wall',act:3,char:'guard',name:{ko:'경비대장 로릭',en:'Captain Rorik'},role:{ko:'남은 자들',en:'Those Who Remain'},
+ text:{ko:'"병사 절반이 앓거나 도망쳤습니다. 남은 인원으로는 성문 두 곳밖에 지킬 수 없습니다."',
+ en:'"Half my men are sick or gone. With what\'s left, I can hold two gates. No more."'},
+ opts:[
+  {lbl:{ko:'민병대를 모집한다',en:'Raise a militia'},fx:{m:-5,t:7,f:-5}},
+  {lbl:{ko:'성문 하나를 벽돌로 막는다',en:'Brick up one of the gates'},fx:{t:5,m:-6}},
+  {lbl:{ko:'지킬 수 있는 만큼만 지킨다',en:'Hold what we can hold'},fx:{t:-7}}
+ ]},
+
+{id:'a3_child',act:3,char:'child',name:{ko:'골목의 아이',en:'The Child in the Alley'},role:{ko:'질문',en:'The Question'},
+ text:{ko:'"이제 골목에서 같이 놀 애들이 없어요. ...나리. 이 병은, 언제 끝나요?"',
+ en:'"There\'s no one left to play with in the alley. ...My lord. When does the sickness end?"'},
+ opts:[
+  {lbl:{ko:'곧 끝난다고 말해 준다',en:'Tell them it ends soon'},fx:{m:6}},
+  {lbl:{ko:'모른다고, 그래도 함께 버티자고 한다',en:'Say you don\'t know — but we endure together'},fx:{m:3,t:3}},
+  {lbl:{ko:'아무 말도 하지 못했다',en:'You could not answer'},fx:{m:-4}}
+ ]},
+
+{id:'a3_boat',act:3,char:'merchant',name:{ko:'곡물 상인 발도',en:'Baldo the Grain Merchant'},role:{ko:'마지막 배',en:'The Last Boat'},
+ text:{ko:'"강에 제 배가 한 척 있습니다. 나리 식솔만 조용히 태워 드리지요. 오늘 밤이... 마지막 기회일지도 모릅니다."',
+ en:'"I keep a boat on the river. Your household only — quietly. Tonight may be... the last chance there is."'},
+ opts:[
+  {lbl:{ko:'나는 이 도시와 함께 남는다',en:'I remain with this city'},fx:{m:8,t:5}},
+  {lbl:{ko:'가족만 태워 보낸다',en:'Send only my family'},fx:{m:-9,t:-6}},
+  {lbl:{ko:'그 배로 성 밖의 약재를 구해 오게 한다',en:'Send the boat for medicine instead'},fx:{f:-4,h:8,t:-4}}
+ ]},
+
+{id:'a3_seed',act:3,char:'baker',name:{ko:'빵집 주인 바트',en:'Bart the Baker'},role:{ko:'마지막 밀',en:'The Last Wheat'},
+ text:{ko:'"마지막 밀 포대요. 이걸 빵으로 구우면 오늘은 배부르고, 씨앗으로 남기면 봄에 밭을 갈 수 있소. 나리가 정해 주시오."',
+ en:'"The last sack of wheat. Bake it, and we eat tonight. Keep it for seed, and we plant in spring. You decide, my lord."'},
+ opts:[
+  {lbl:{ko:'빵을 굽는다',en:'Bake the bread'},fx:{f:8,m:5}},
+  {lbl:{ko:'씨앗으로 남긴다',en:'Keep it for seed'},fx:{f:-7,m:-4,t:6}},
+  {lbl:{ko:'반은 빵으로, 반은 씨앗으로',en:'Half for bread, half for seed'},fx:{f:2,t:3}}
+ ]},
+
+{id:'a3_grave',act:3,char:'priest',name:{ko:'사제 오스문드',en:'Father Osmund'},role:{ko:'가득 찬 묘지',en:'The Full Graveyard'},
+ text:{ko:'"묘지가 가득 찼습니다. 이제 죽은 이들을 어디에 뉘어야 합니까. 답을 주십시오."',
+ en:'"The graveyard is full. Where do we lay the dead now? Give me an answer."'},
+ opts:[
+  {lbl:{ko:'성 밖에 큰 구덩이를 판다',en:'Dig a great pit outside the walls'},fx:{h:9,m:-8}},
+  {lbl:{ko:'화장한다',en:'Burn them'},fx:{h:11,m:-11}},
+  {lbl:{ko:'교회 앞마당을 연다',en:'Open the churchyard'},fx:{m:6,h:-7}}
+ ]},
+
+{id:'a3_dawn',act:3,char:'mabel',name:{ko:'세탁부 메이블',en:'Mabel the Washerwoman'},role:{ko:'새벽 빨래',en:'Laundry at Dawn'},
+ text:{ko:'"오늘 새벽엔 빨랫감이 줄었어요. 병자 옷이 줄었다는 뜻이에요. 나리... 이거, 좋은 징조 맞죠?"',
+ en:'"There was less washing this morning. Fewer sick-clothes — that\'s what it means. My lord... it\'s a good sign, isn\'t it?"'},
+ opts:[
+  {lbl:{ko:'그렇다고, 다 왔다고 말한다',en:'Tell her yes — we\'re nearly through'},fx:{m:6}},
+  {lbl:{ko:'아직 마음을 놓긴 이르다',en:'It\'s too soon to hope'},fx:{h:5,m:-3}},
+  {lbl:{ko:'말없이 고개만 끄덕인다',en:'Only nod, and say nothing'},fx:{m:3}}
+ ]},
+
+{id:'a3_vault',act:3,char:'merchant',name:{ko:'곡물 상인 발도',en:'Baldo the Grain Merchant'},role:{ko:'봉인된 문',en:'The Sealed Door'},
+ text:{ko:'"옛 영주가 봉인한 지하 저장고가 있다는 얘기, 들어보셨습니까? 곡식이 잠들어 있을 수도 있고... 그냥 돌무더기일 수도 있지요."',
+ en:'"Have you heard of the old lord\'s sealed cellar? Could be grain sleeping down there... could be nothing but rubble."'},
+ opts:[
+  {lbl:{ko:'봉인을 연다',en:'Break the seal'},gamble:{p:0.5,
+   win:{fx:{f:14},txt:{ko:'봉인 뒤에는 곡식 자루가 잠들어 있었다. 옛 영주의 마지막 선물이었다.',en:'Behind the seal, sacks of grain lay sleeping. A last gift from the old lord.'}},
+   lose:{fx:{t:-6,m:-4},txt:{ko:'돌무더기뿐이었다. 헛수고에 지친 사람들의 눈초리가 따가웠다.',en:'Rubble, nothing more. Weary, resentful eyes followed you home.'}}}},
+  {lbl:{ko:'헛소문에 쓸 인력이 없다',en:'We have no hands to waste on rumors'},fx:{m:-2}}
+ ]},
+
+{id:'a3_fire',act:3,char:'guard',name:{ko:'경비대장 로릭',en:'Captain Rorik'},role:{ko:'빈집 화재',en:'Fire in the Empty Quarter'},
+ text:{ko:'"빈집에서 불이 났습니다. 사는 이가 없어 그냥 두면 골목째 옮겨붙을 겁니다. 헐어서 불길을 끊는 수밖에요."',
+ en:'"A fire in the empty houses. No one lives there to fight it — left alone, it takes the whole lane. We tear down houses and cut its path, or nothing."'},
+ opts:[
+  {lbl:{ko:'이웃집까지 헐어 길을 끊는다',en:'Tear down to the neighbors\' walls'},fx:{h:7,m:-6}},
+  {lbl:{ko:'총력으로 물을 붓는다',en:'Fight it with everything we have'},fx:{h:3,m:-4}},
+  {lbl:{ko:'그 골목은 태워서 소독한다',en:'Let it burn the lane clean'},fx:{h:8,m:-9}}
+ ]},
+
+{id:'a3_prophet',act:3,char:'priest',name:{ko:'광장의 광인',en:'The Madman in the Square'},role:{ko:'예언',en:'Prophecy'},
+ text:{ko:'한 사내가 광장에서 외치고 있다. "엿새 뒤 모두 죽는다! 성문을 부수고 나가야 산다!" 몇몇이 걸음을 멈추고 듣기 시작했다.',
+ en:'A man stands shouting in the square: "In six days we all die! Break the gates and run!" A few have stopped to listen.'},
+ opts:[
+  {lbl:{ko:'가두어 입을 막는다',en:'Lock him up and silence him'},fx:{m:-4,t:4}},
+  {lbl:{ko:'사제를 보내 조목조목 반박한다',en:'Send the priest to refute him, point by point'},fx:{m:6,t:-2}},
+  {lbl:{ko:'헛소리는 곧 지친다',en:'Raving tires itself out'},fx:{m:-6}}
+ ]},
+
+{id:'a3_ledger',act:3,char:'thief',name:{ko:'장부 담당 서기',en:'The Clerk of Records'},role:{ko:'은밀한 제안',en:'A Quiet Offer'},
+ text:{ko:'"사망자 숫자를... 조금만 줄여 적으면 영주의 화를 피할 수 있습니다. 들키지만 않으면요." 서기가 목소리를 낮춘다.',
+ en:'"If we... trimmed the death count, just a little, the lord\'s anger might pass us by. So long as no one finds out." The clerk lowers his voice.'},
+ opts:[
+  {lbl:{ko:'숫자를 줄인다',en:'Trim the numbers'},gamble:{p:0.6,
+   win:{fx:{t:8},txt:{ko:'영주는 줄어든 숫자에 흡족해했다. 아무도 다시 세어 보지 않았다.',en:'The lord was pleased with the smaller count. No one ever counted again.'}},
+   lose:{fx:{t:-10,m:-5},txt:{ko:'밀정이 진짜 장부를 먼저 올려 보냈다. 그대의 이름 옆에 "거짓"이라 적혀 있었다.',en:'The spy sent the true ledger first. Beside your name, a single word: "liar."'}}}},
+  {lbl:{ko:'있는 그대로 적는다',en:'Write it as it is'},fx:{t:-5,m:3}}
+ ]},
+
+{id:'a3_well',act:3,char:'mabel',name:{ko:'세탁부 메이블',en:'Mabel the Washerwoman'},role:{ko:'마지막 우물',en:'The Last Well'},
+ text:{ko:'"성한 우물이 이제 하나뿐이에요. 새벽부터 줄이 늘어서고, 어제는 물통 앞에서 주먹다짐까지 났어요."',
+ en:'"Only one clean well left. The line starts before dawn — yesterday it came to blows over a bucket."'},
+ opts:[
+  {lbl:{ko:'물 배급제를 시행한다',en:'Ration the water'},fx:{h:6,m:-5}},
+  {lbl:{ko:'경비병을 세워 질서만 잡는다',en:'Post a guard to keep order'},fx:{h:3,m:-1,t:-2}},
+  {lbl:{ko:'알아서들 하게 둔다',en:'Let them sort it out'},fx:{m:3,h:-6}}
+ ]},
+
+/* ═══ 위기 카드 · Crisis ═══ */
+
+{id:'c_rats',crisis:true,minAct:2,cond:s=>s.h<=30,char:'rats',name:{ko:'대낮의 쥐떼',en:'Rats at Noon'},role:{ko:'흉조',en:'An Ill Omen'},
+ text:{ko:'대낮의 광장을 쥐떼가 가로질렀다. 아무도 비명을 지르지 않았다. 그 침묵이 비명보다 무거웠다.',
+ en:'A river of rats crossed the square in broad daylight. No one screamed. The silence was heavier than any scream.'},
+ opts:[
+  {lbl:{ko:'골목을 통째로 태워 소독한다',en:'Burn the alleys clean'},fx:{h:12,m:-7,f:-5}},
+  {lbl:{ko:'쥐잡이꾼을 총동원한다',en:'Turn out every rat-catcher'},fx:{h:8,f:-7}},
+  {lbl:{ko:'기도밖에 할 것이 없다',en:'There is nothing left but prayer'},fx:{m:3,h:-7}}
+ ]},
+
+{id:'c_crowd',crisis:true,minAct:2,cond:s=>s.m<=30,char:'refugee',name:{ko:'광장의 함성',en:'The Roar in the Square'},role:{ko:'분노',en:'Fury'},
+ text:{ko:'광장에 사람들이 모였다. "문을 열어라!" 함성이 성벽을 두드린다. 횃불 몇 개가 어둠 속에서 흔들린다.',
+ en:'A crowd has gathered. "Open the gates!" The chant beats against the walls. A few torches sway in the dark.'},
+ opts:[
+  {lbl:{ko:'홀로 광장에 나선다',en:'Walk out to them alone'},fx:{m:11,t:-6}},
+  {lbl:{ko:'경비대로 해산시킨다',en:'Disperse them with the guard'},fx:{m:-8,t:8}},
+  {lbl:{ko:'그 자리에서 빵을 푼다',en:'Hand out bread on the spot'},fx:{m:8,f:-9}}
+ ]},
+
+{id:'c_mutiny',crisis:true,minAct:2,cond:s=>s.t<=30,char:'guard',name:{ko:'창끝의 방향',en:'Where the Spears Point'},role:{ko:'경고',en:'A Warning'},
+ text:{ko:'"병사들이 밀린 급료 대신 곳간 열쇠를 요구합니다. 이건... 요구가 아니라 통보에 가깝습니다. 대장으로서 마지막으로 말리는 중입니다."',
+ en:'"The men demand the granary keys in place of their back pay. This is... less a demand than a notice. As their captain, I am the last thing holding them back."'},
+ opts:[
+  {lbl:{ko:'열쇠 대신 급료를 푼다',en:'Open the pay chest instead'},fx:{f:-10,t:12}},
+  {lbl:{ko:'주모자를 색출해 목을 벤다',en:'Find the ringleaders and behead them'},fx:{t:-7,m:-4}},
+  {lbl:{ko:'열쇠를 내어 준다',en:'Hand over the keys'},fx:{f:-13,t:8,m:-5}}
+ ]},
+
+{id:'c_thief',crisis:true,minAct:1,cond:s=>s.f>=65,char:'thief',name:{ko:'곳간의 그림자',en:'A Shadow at the Granary'},role:{ko:'유혹',en:'Temptation'},
+ text:{ko:'곳간이 가득하다는 소문이 돌자 밤손님이 들었다. 붙잡고 보니 아이 셋 딸린 어미였다. 광장의 모두가 처분을 지켜보고 있다.',
+ en:'Word of the full granary drew a thief in the night. Caught — a mother of three. The whole square is watching what you will do.'},
+ opts:[
+  {lbl:{ko:'본보기로 처벌한다',en:'Punish her as an example'},fx:{m:-12,t:8,f:4}},
+  {lbl:{ko:'곳간 일을 시켜 갚게 한다',en:'Have her work off the debt'},fx:{m:5,t:3,f:-3}},
+  {lbl:{ko:'자루째 들려 보낸다',en:'Send her home with the sack'},fx:{m:9,f:-8,t:-5}}
+ ]},
+
+{id:'c_pride',crisis:true,minAct:1,cond:s=>s.m>=65,char:'refugee',name:{ko:'무거워진 사랑',en:'A Love Grown Heavy'},role:{ko:'과잉 기대',en:'Great Expectations'},
+ text:{ko:'칭송이 높아지자 요구도 높아졌다. 성문을 열어 달라, 배급을 늘려 달라, 세금을 없애 달라. 광장의 목소리에 이제 거절이란 답은 없어 보인다.',
+ en:'As the praise grew, so did the demands. Open the gates. Double the rations. End the taxes. The square no longer seems to accept "no" for an answer.'},
+ opts:[
+  {lbl:{ko:'단호하게 선을 긋는다',en:'Draw the line, firmly'},fx:{m:-14,t:6}},
+  {lbl:{ko:'들어줄 것만 골라 들어준다',en:'Grant only what can be granted'},fx:{m:-8,f:-6}},
+  {lbl:{ko:'모두 들어준다',en:'Grant it all'},fx:{m:3,f:-11,t:-7}}
+ ]},
+
+{id:'c_zeal',crisis:true,minAct:1,cond:s=>s.h>=65,char:'priest',name:{ko:'단속의 그늘',en:'The Shadow of Zeal'},role:{ko:'과잉 통제',en:'Overreach'},
+ text:{ko:'"위생 단속반이 도를 넘었습니다. 멀쩡한 집에 격리 표식을 붙여 놓고, 떼 주는 값으로 뒷돈을 받는답니다. 나리의 이름을 팔면서요."',
+ en:'"The sanitation wardens have gone too far. They mark healthy houses — then take bribes to remove the mark. In your name, my lord."'},
+ opts:[
+  {lbl:{ko:'단속반을 해체한다',en:'Disband the wardens'},fx:{h:-14,m:7}},
+  {lbl:{ko:'주동자만 벌하고 규모를 줄인다',en:'Punish the ringleaders, scale it back'},fx:{h:-8,m:3,t:3}},
+  {lbl:{ko:'단속엔 원성이 따르는 법이다',en:'Enforcement always breeds resentment'},fx:{h:3,m:-10}}
+ ]},
+
+{id:'c_shadow',crisis:true,minAct:1,cond:s=>s.t>=65,char:'envoy',name:{ko:'커진 그림자',en:'The Growing Shadow'},role:{ko:'월권',en:'Abuse of Power'},
+ text:{ko:'"경비대가 나리의 위세를 업고 상인들 물건에 손을 대기 시작했습니다. 그리고... 영주의 밀정이 그걸 전부 적어 두고 있더군요."',
+ en:'"The guard has begun helping itself to the merchants\' goods — trading on your authority. And... the lord\'s spy is writing all of it down."'},
+ opts:[
+  {lbl:{ko:'경비대의 권한을 회수한다',en:'Strip the guard\'s privileges'},fx:{t:-13,m:5}},
+  {lbl:{ko:'조용히 주의만 준다',en:'A quiet word of warning'},fx:{t:-6}},
+  {lbl:{ko:'그 정도는 눈감아 준다',en:'Let that much slide'},fx:{t:4,m:-9}}
+ ]}
+];
+
+
+
+
+/* ══════════ 엔딩 ══════════ */
+const ENDINGS={
+ f0:{t:{ko:'아사',en:'Starvation'},b:{
+  1:{ko:'병보다 굶주림이 먼저 왔다. 성문을 닫은 지 열흘도 되지 않아 곳간이 비었고, 사람들은 그대의 셈법을 저주했다.',
+     en:'Hunger arrived before the sickness did. The granary stood empty within ten days of the gates closing, and the people cursed your arithmetic.'},
+  2:{ko:'병든 도시는 굶주림까지 견디지는 못했다. 배급소 앞의 줄이 폭도로 변하는 데는 한나절이면 충분했다.',
+     en:'A plague-stricken city could not bear famine on top of fever. It took half a day for the ration line to become a mob.'},
+  3:{ko:'그토록 버텼는데, 마지막 고비에서 곳간이 비었다. 성문이 열리기 며칠 전이었다는 것을, 사람들은 끝내 알지 못했다.',
+     en:'You endured so much — and at the last hill, the granary ran dry. The gates would have opened within days. The people never learned how close it was.'}}},
+ f1:{t:{ko:'넘치는 곳간',en:'The Overflowing Granary'},b:{
+  1:{ko:'역병 소문 속에 그대의 곳간만 차올랐다. 사람들의 셈은 빠르다. 사재기한 장사꾼과 관리인을 구분하지 않을 만큼.',
+     en:'Amid rumors of plague, only your granary grew fuller. People count quickly — too quickly to tell a steward from a hoarder.'},
+  2:{ko:'병자와 굶는 이가 늘어 가는데 곳간은 넘쳤다. 소문은 횃불이 되었고, 횃불은 곳간과 그대를 함께 삼켰다.',
+     en:'The sick and the starving multiplied while the granary overflowed. Rumor became a torch, and the torch took the granary and you together.'},
+  3:{ko:'도시가 뼈만 남은 뒤에도 곳간은 가득했다. 굶주린 자들이 마지막 힘을 어디에 쓸지는, 이미 정해져 있었다.',
+     en:'The city was down to its bones, and still the granary stood full. Where the starving would spend their last strength was never in question.'}}},
+ m0:{t:{ko:'화형',en:'The Pyre'},b:{
+  1:{ko:'병이 퍼지기도 전에 미움이 먼저 퍼졌다. 군중은 병 대신 태울 것을 찾았고, 그것이 그대였다.',
+     en:'Hatred spread faster than the sickness. The crowd wanted something to burn in the plague\'s place — and it chose you.'},
+  2:{ko:'군중이 광장에 장작을 쌓았다. 그대의 이름을 외치며. 사제는 끝내 고개를 돌렸다.',
+     en:'The crowd stacked firewood in the square, chanting your name. The priest turned his face away, to the very end.'},
+  3:{ko:'다 견뎌 놓고 사람의 마음을 놓쳤다. 마지막 밤의 광장은 어느 때보다 밝았다. 그대를 태우는 불로.',
+     en:'You survived everything except the hearts of the people. On the final night, the square shone brighter than it ever had — with the fire that took you.'}}},
+ m1:{t:{ko:'민중의 왕',en:'King of the People'},b:{
+  1:{ko:'열흘 만에 도시는 그대만 바라보았다. 왕관 없는 왕. 영주의 밀정이 그 말을 받아 적었다.',
+     en:'Within ten days the city looked to no one but you. A king without a crown. The lord\'s spy wrote the phrase down, word for word.'},
+  2:{ko:'사람들이 그대를 왕으로 추대했다. 그 소식은 하루 만에 영주의 귀에 닿았고, 병사들은 새벽에 들이닥쳤다.',
+     en:'The people proclaimed you king. The news reached the lord within a day; his soldiers arrived at dawn.'},
+  3:{ko:'역병의 끝자락에서 사람들은 그대를 구원자라 불렀다. 영주에게 그 말은 반역과 같은 말이었다.',
+     en:'At the plague\'s end, the people called you their savior. To the lord, that word meant treason.'}}},
+ h0:{t:{ko:'붉은 십자가',en:'The Marked Door'},b:{
+  1:{ko:'첫 경고들을 흘려보낸 값이었다. 병은 소문보다 빨랐고, 그대의 집 문에도 붉은 십자가가 그려졌다.',
+     en:'This was the price of ignoring the first warnings. The sickness moved faster than rumor — and a red cross appeared on your door as well.'},
+  2:{ko:'기침이 시작됐다. 사흘째 되던 밤, 그대의 집 문에도 붉은 십자가가 그려졌다. 문 안쪽에서.',
+     en:'The cough began. On the third night, a red cross was painted on your door too. From the inside.'},
+  3:{ko:'도시는 살아남았으나 그대가 병상에 누웠다. 창밖에서 성문 열리는 소리를 들은 것도 같았다. 열에 들뜬 꿈이었는지도 모른다.',
+     en:'The city lived — but you took to your bed. You thought you heard the gates open beyond the window. Perhaps it was only the fever, dreaming.'}}},
+ h1:{t:{ko:'정화의 불',en:'The Cleansing Fire'},b:{
+  1:{ko:'병의 그림자만 보고 도시를 닦고, 태우고, 비웠다. 역병은 오지 않았다. 사람도 남지 않았다.',
+     en:'At the mere shadow of sickness you scrubbed, burned, and emptied a city. The plague never came. Neither did the people ever return.'},
+  2:{ko:'깨끗한 도시를 만들겠다며 태우고 또 태웠다. 마침내 역병은 사라졌다. 도시도 함께.',
+     en:'You burned and burned to make the city clean. At last the plague was gone. So was the city.'},
+  3:{ko:'마지막 열병 하나까지 불로 지웠다. 서른 번째 아침 성문이 열렸을 때, 들어온 것은 바람뿐이었다.',
+     en:'You scoured away the last fever with fire. When the gates opened on the thirtieth morning, only the wind came in.'}}},
+ t0:{t:{ko:'검은 새벽',en:'Black Dawn'},b:{
+  1:{ko:'처음부터 칼자루를 쥐여 주지 않았다. 그러자 경비대는 스스로 쥐는 법을 택했다.',
+     en:'You never let them hold the hilt — so the guard chose to take it for themselves.'},
+  2:{ko:'경비대장이 침소의 문을 열고 검을 뽑았다. "도시를 위해서입니다." 그것이 그대가 들은 마지막 말이었다.',
+     en:'The captain opened your chamber door and drew his sword. "For the city." It was the last thing you ever heard.'},
+  3:{ko:'끝이 보이던 밤이었다. 그러나 병사들의 인내는 역병보다 하루 먼저 끝났다.',
+     en:'The end was in sight that night. But the soldiers\' patience ran out one day before the plague did.'}}},
+ t1:{t:{ko:'그림자 반역',en:'A Shadow of Treason'},b:{
+  1:{ko:'경비대가 열흘 만에 그대의 사병이 되었다. 영주는 멀리서도 그것을 알아보았다.',
+     en:'Within ten days, the guard had become your private army. Even from his distant estate, the lord recognized it for what it was.'},
+  2:{ko:'경비대는 이제 영주가 아니라 그대의 명만 따랐다. 영주는 그것을 반역이라 불렀다. 그리고 법은, 영주의 것이었다.',
+     en:'The guard now answered to you, not the lord. He called it treason — and the law belonged to him.'},
+  3:{ko:'도시를 구한 것은 그대와 그대의 군대였다. 영주가 두려워한 것은 역병이 아니라 바로 그 문장이었다.',
+     en:'It was you and your soldiers who saved the city. That sentence — not the plague — was what the lord feared most.'}}},
+ win:{t:{ko:'성문이 열린 아침',en:'The Morning the Gates Opened'},
+  b:{ko:'서른 번째 아침, 종이 울렸다. 더는 새로 앓는 이가 없었다. 성문이 열리고, 도시는 그대의 이름을 기억하기로 했다.',
+     en:'The bell rang on the thirtieth morning. No new fevers. The gates opened, and the city chose to remember your name.'}},
+ winCure:{t:{ko:'성문이 열린 아침',en:'The Morning the Gates Opened'},
+  b:{ko:'에드윈의 약이 도시를 구했다. 서른 번째 아침, 성문이 열렸다. 훗날 사람들은 이 밤들을 이렇게 불렀다 — 성문이 닫힌 밤, 그러나 꺼지지 않았던 촛불.',
+     en:'Edwin\'s medicine saved the city. On the thirtieth morning, the gates opened. In later years, people spoke of these nights by a single name — the night the gates closed, and the candle that never went out.'}}
+};
+const ACT_INFO={
+ 1:{num:{ko:'제 一 막',en:'ACT I'},title:{ko:'소문',en:'Rumors'},
+    desc:{ko:'병은 아직 이야기 속에만 있다.<br>그러나 이야기는, 언제나 걸음이 빠르다.',
+          en:'The sickness lives only in stories, for now.<br>But stories have always traveled fast.'}},
+ 2:{num:{ko:'제 二 막',en:'ACT II'},title:{ko:'창궐',en:'Outbreak'},
+    desc:{ko:'붉은 십자가가 도시의 밤을 물들인다.<br>이제부터 매일 밤, 역병이 도시를 갉아먹는다.',
+          en:'Red crosses stain the city\'s nights.<br>From this night on, the plague gnaws at the city every single day.'}},
+ 3:{num:{ko:'제 三 막',en:'ACT III'},title:{ko:'한계',en:'The Brink'},
+    desc:{ko:'곳간이 바닥을 보이고, 인내도 바닥을 보인다.<br>버텨라. 이제 여덟 밤이다.',
+          en:'The granary is showing its bottom — and so is everyone\'s patience.<br>Hold on. Eight nights remain.'}}
+};
+const UI={
+ title:{ko:'성문이 닫힌 밤',en:'THE NIGHT THE GATES CLOSED'},
+ stat:{f:{ko:'식량',en:'Food'},m:{ko:'민심',en:'People'},h:{ko:'위생',en:'Health'},t:{ko:'신뢰',en:'Trust'}},
+ introKicker:{ko:'역병의 해',en:'THE YEAR OF THE PLAGUE'},
+ introTitle:{ko:'성문이<br>닫힌 밤',en:'THE NIGHT<br>THE GATES CLOSED'},
+ introBody:{ko:'왕은 성문을 닫으라 명했고,<br>영주는 도망쳤다.<br><br>이제 이 도시는 그대의 몫이다.<br>서른 밤을 버텨라.',
+   en:'The King ordered the gates closed.<br>The lord fled.<br><br>The city is yours to carry now.<br>Survive thirty nights.'},
+ introHint:{ko:'결과는 겪어 봐야 안다.',en:'You won\'t know what a choice does until you make it.'},
+ start:{ko:'촛불을 켜다',en:'Light the Candle'},
+ colBtn:{ko:n=>`엔딩 컬렉션 (${n}/10)`,en:n=>`Ending Collection (${n}/10)`},
+ colKicker:{ko:'결말의 기록',en:'A RECORD OF ENDINGS'},
+ colTitle:{ko:'엔딩 컬렉션',en:'Ending Collection'},
+ close:{ko:'닫기',en:'Close'},
+ again:{ko:'다시, 첫째 밤으로',en:'Again, from the First Night'},
+ endDeath:{ko:'최후',en:'THE END'},endLive:{ko:'생존',en:'SURVIVED'},
+ diedNight:{ko:d=>`— ${d}일째 밤에 스러지다 —`,en:d=>`— Fallen on night ${d} —`},
+ diedDawn:{ko:d=>`— 역병이 깊어진 새벽, ${d}일째에 스러지다 —`,en:d=>`— Taken at dawn of night ${d}, as the plague deepened —`},
+ survived:{ko:'— 서른 밤을 버텨내다 —',en:'— Thirty nights endured —'},
+ actTap:{ko:'화면을 누르면 밤이 시작된다',en:'Tap to begin the night'},
+ tapNext:{ko:'화면을 터치해 계속',en:'Tap to continue'},
+ diffName:{easy:{ko:'평온',en:'Gentle'},normal:{ko:'표준',en:'Standard'},hard:{ko:'가혹',en:'Cruel'}},
+ diffDesc:{
+  easy:{ko:'낮은 변동 폭 · 입문 추천',en:'Smaller swings · story-friendly'},
+  normal:{ko:'권장 난이도',en:'Recommended'},
+  hard:{ko:'높은 변동 폭 · 숙련자 추천',en:'Bigger swings · for veterans'}
+ },
+ cause:{
+  f0:{ko:'식량 부족 — 굶주린 도시를 막을 수 없었다',en:'Starvation — a hungry city could not be held back'},
+  f1:{ko:'식량 독점 — 넘치는 곳간이 횃불을 불렀다',en:'Hoarding — an overflowing granary drew the torches'},
+  m0:{ko:'민심 붕괴 — 분노한 군중을 돌려세울 수 없었다',en:'The people\'s fury — the mob could not be turned away'},
+  m1:{ko:'과도한 추앙 — 영주의 의심을 피할 수 없었다',en:'Loved too well — the lord\'s suspicion could not be escaped'},
+  h0:{ko:'위생 붕괴 — 거리에 번지는 역병을 막을 수 없었다',en:'Filth and fever — the plague in the streets could not be stopped'},
+  h1:{ko:'과잉 통제 — 도시를 지키려다 도시를 잃었다',en:'Overzealous cleansing — you saved the city out of existence'},
+  t0:{ko:'신뢰 붕괴 — 등 뒤로 돌아선 칼끝을 피할 수 없었다',en:'Trust broken — the blades at your back could not be escaped'},
+  t1:{ko:'비대해진 권력 — 반역의 낙인을 피할 수 없었다',en:'Power grown too large — the brand of treason could not be escaped'}
+ },
+ dayName:{ko:d=>d<=10?['첫째','둘째','셋째','넷째','다섯째','여섯째','일곱째','여덟째','아홉째','열째'][d-1]+' 밤':d+'일째 밤',
+          en:d=>'Night '+d},
+ actChip:{ko:(a,t)=>`제${a}막 · ${t}`,en:(a,t)=>`Act ${['I','II','III'][a-1]} · ${t}`}
+};
+
+
+
+/* ══════════ 엔딩 장면 (10종 · 전체 배경용) ══════════ */
+const SC_DEFS=`<defs>
+<linearGradient id="sBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#241a10"/><stop offset=".55" stop-color="#120d07"/><stop offset="1" stop-color="#070503"/></linearGradient>
+<radialGradient id="sGlow" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#e09a3e" stop-opacity=".55"/><stop offset="1" stop-color="#e09a3e" stop-opacity="0"/></radialGradient>
+<radialGradient id="sGlowR" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#c9564a" stop-opacity=".5"/><stop offset="1" stop-color="#c9564a" stop-opacity="0"/></radialGradient>
+<linearGradient id="sFire" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#8c2f23"/><stop offset=".45" stop-color="#d97b34"/><stop offset="1" stop-color="#f4c473"/></linearGradient>
+<linearGradient id="sDawn" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f4c473" stop-opacity=".85"/><stop offset="1" stop-color="#f4c473" stop-opacity="0"/></linearGradient>
+<linearGradient id="sSteel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5a6570"/><stop offset=".5" stop-color="#dfe7ee"/><stop offset="1" stop-color="#8d9cab"/></linearGradient>
+</defs>`;
+const W1='#41301a',W2='#2a1f12',W3='#1a130b';
+function scWrap(inner){return `<svg viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice">${SC_DEFS}<rect width="360" height="640" fill="url(#sBg)"/>${inner}</svg>`;}
+const ENDSCENES={
+
+/* 아사 — 쓰러진 빈 자루, 흩어진 마지막 낟알, 빈 그릇, 쥐 */
+f0:scWrap(`
+ <ellipse cx="180" cy="330" rx="200" ry="150" fill="url(#sGlow)" opacity=".25"/>
+ <path d="M84 320 q-16 -78 38 -96 q60 -18 96 8 q30 24 6 52 q-44 44 -140 36z" fill="${W1}"/>
+ <path d="M92 312 q-10 -62 34 -78 q50 -16 82 6" stroke="#5a4425" stroke-width="3" fill="none" opacity=".8"/>
+ <path d="M218 232 q34 -12 44 6 q8 18 -22 30 l-26 8z" fill="${W2}"/>
+ <g stroke="#5a4425" stroke-width="2.5" opacity=".7"><line x1="120" y1="238" x2="128" y2="252"/><line x1="146" y1="230" x2="152" y2="245"/><line x1="172" y1="228" x2="176" y2="243"/></g>
+ <g fill="#e0b45e"><circle cx="238" cy="292" r="3.4"/><circle cx="258" cy="306" r="2.8"/><circle cx="276" cy="296" r="2.4"/><circle cx="250" cy="322" r="2.6"/><circle cx="290" cy="316" r="2"/></g>
+ <path d="M96 372 q0 -18 34 -18 q34 0 34 18 q0 12 -34 12 q-34 0 -34 -12z" fill="${W3}"/>
+ <path d="M104 366 q6 -10 26 -10 q20 0 26 10" stroke="#3a2c16" stroke-width="2.5" fill="none"/>
+ <ellipse cx="268" cy="368" rx="26" ry="12" fill="${W3}"/>
+ <path d="M292 364 q16 -6 18 -20" stroke="${W3}" stroke-width="5" fill="none" stroke-linecap="round"/>
+ <circle cx="254" cy="364" r="2.4" fill="#c9564a"/>
+ <ellipse cx="180" cy="392" rx="150" ry="16" fill="#000" opacity=".4"/>`),
+
+/* 넘치는 곳간 — 가득 쌓인 자루 더미와 사방에서 치솟는 불길 */
+f1:scWrap(`
+ <path d="M60 300 V190 L180 130 L300 190 V300 Z" fill="${W2}"/>
+ <path d="M52 196 L180 132 L308 196" stroke="${W1}" stroke-width="8" fill="none"/>
+ <g fill="${W1}"><ellipse cx="128" cy="286" rx="30" ry="22"/><ellipse cx="180" cy="290" rx="32" ry="24"/><ellipse cx="234" cy="286" rx="30" ry="22"/><ellipse cx="154" cy="258" rx="28" ry="20"/><ellipse cx="208" cy="258" rx="28" ry="20"/><ellipse cx="181" cy="232" rx="26" ry="18"/></g>
+ <g stroke="#5a4425" stroke-width="2" opacity=".8"><path d="M144 250 q10 -6 20 0"/><path d="M198 250 q10 -6 20 0"/><path d="M171 226 q10 -6 20 0"/></g>
+ <path d="M40 420 q-22 -72 24 -110 q6 46 30 62 q-4 -40 20 -64 q18 54 -12 112z" fill="url(#sFire)"/>
+ <path d="M320 420 q22 -68 -20 -104 q-6 42 -28 58 q4 -36 -18 -60 q-20 52 10 106z" fill="url(#sFire)"/>
+ <path d="M180 430 q-14 -44 10 -70 q6 28 20 38 q-2 -24 12 -38 q16 40 -8 70z" fill="url(#sFire)" opacity=".95"/>
+ <g fill="#f4c473"><circle cx="90" cy="240" r="3"/><circle cx="286" cy="220" r="3"/><circle cx="196" cy="160" r="2.4"/><circle cx="120" cy="180" r="2"/></g>
+ <ellipse cx="180" cy="300" rx="210" ry="150" fill="url(#sGlowR)" opacity=".3"/>`),
+
+/* 화형 — 화형대 기둥, 묶인 밧줄, 거대한 불길, 지켜보는 군중 */
+m0:scWrap(`
+ <rect x="170" y="120" width="20" height="240" rx="4" fill="${W2}"/>
+ <g stroke="#5a4425" stroke-width="6" fill="none"><path d="M150 200 q30 14 60 0"/><path d="M150 236 q30 14 60 0"/></g>
+ <g fill="${W1}"><path d="M110 356 l40 -22 l8 12 l-40 22z"/><path d="M250 356 l-40 -22 l-8 12 l40 22z"/><path d="M130 372 l50 -14 l4 14 l-50 12z"/><path d="M230 372 l-50 -14 l-4 14 l50 12z"/></g>
+ <path d="M116 388 q-22 -80 28 -122 q6 50 32 68 q-4 -44 24 -70 q28 62 4 124 q-44 28 -88 0z" fill="url(#sFire)"/>
+ <path d="M160 380 q-8 -40 12 -62 q4 24 16 32 q0 -20 10 -30 q14 36 -6 62z" fill="#f4c473" opacity=".85"/>
+ <g fill="#f4c473"><circle cx="120" cy="212" r="3"/><circle cx="248" cy="196" r="2.6"/><circle cx="230" cy="150" r="2.2"/><circle cx="132" cy="160" r="2"/></g>
+ <g fill="${W3}"><circle cx="34" cy="470" r="26"/><circle cx="92" cy="482" r="30"/><circle cx="268" cy="480" r="30"/><circle cx="326" cy="470" r="26"/><circle cx="180" cy="492" r="32"/></g>
+ <ellipse cx="180" cy="330" rx="180" ry="180" fill="url(#sGlowR)" opacity=".4"/>`),
+
+/* 민중의 왕 — 빛나는 왕관을 향해 뻗은 손들, 그리고 파고드는 창끝 */
+m1:scWrap(`
+ <ellipse cx="180" cy="220" rx="150" ry="120" fill="url(#sGlow)" opacity=".5"/>
+ <g stroke="#f4c473" stroke-width="7" fill="none" stroke-linejoin="round">
+  <path d="M116 214 V252 H244 V214 L216 236 L180 200 L144 236 Z"/></g>
+ <path d="M116 214 V252 H244 V214 L216 236 L180 200 L144 236 Z" fill="#e09a3e" opacity=".25"/>
+ <g fill="#f4c473"><circle cx="116" cy="208" r="6"/><circle cx="180" cy="192" r="7"/><circle cx="244" cy="208" r="6"/></g>
+ <circle cx="180" cy="234" r="6" fill="#c9564a"/>
+ <g fill="${W3}">
+  <path d="M40 640 V420 q10 -30 22 0 V640z"/><path d="M96 640 V390 q10 -32 22 0 V640z"/>
+  <path d="M160 640 V376 q10 -34 22 0 V640z"/><path d="M226 640 V392 q10 -32 22 0 V640z"/>
+  <path d="M290 640 V424 q10 -30 22 0 V640z"/></g>
+ <g stroke="${W2}" stroke-width="7"><line x1="24" y1="60" x2="112" y2="168"/><line x1="336" y1="60" x2="248" y2="168"/></g>
+ <path d="M112 168 l-20 -22 l26 6z" fill="#5a6570" stroke="#8d9cab" stroke-width="2"/>
+ <path d="M248 168 l20 -22 l-26 6z" fill="#5a6570" stroke="#8d9cab" stroke-width="2"/>`),
+
+/* 붉은 십자가 — 화면을 가득 채운 문과 커다란 핏빛 십자 표식 */
+h0:scWrap(`
+ <rect x="70" y="80" width="220" height="440" rx="8" fill="${W1}"/>
+ <rect x="84" y="94" width="192" height="412" rx="5" fill="${W2}"/>
+ <g stroke="${W3}" stroke-width="3"><line x1="132" y1="96" x2="132" y2="504"/><line x1="180" y1="96" x2="180" y2="504"/><line x1="228" y1="96" x2="228" y2="504"/></g>
+ <g fill="${W3}"><rect x="84" y="150" width="40" height="14" rx="4"/><rect x="236" y="150" width="40" height="14" rx="4"/><rect x="84" y="430" width="40" height="14" rx="4"/><rect x="236" y="430" width="40" height="14" rx="4"/></g>
+ <circle cx="252" cy="300" r="9" fill="#0c0906" stroke="#5a4425" stroke-width="2"/>
+ <g stroke="#a03a2b" stroke-width="26" stroke-linecap="round" opacity=".95">
+  <line x1="118" y1="180" x2="242" y2="420"/><line x1="242" y1="180" x2="118" y2="420"/></g>
+ <g stroke="#c9564a" stroke-width="8" stroke-linecap="round" opacity=".8">
+  <line x1="122" y1="184" x2="238" y2="414"/><line x1="238" y1="184" x2="122" y2="414"/></g>
+ <path d="M124 414 q2 20 -3 34 M238 420 q3 22 -2 38" stroke="#a03a2b" stroke-width="6" fill="none" stroke-linecap="round"/>
+ <ellipse cx="180" cy="300" rx="180" ry="220" fill="url(#sGlowR)" opacity=".25"/>`),
+
+/* 정화의 불 — 도시 전체를 삼킨 불바다 */
+h1:scWrap(`
+ <g fill="${W3}">
+  <path d="M0 360 V300 h40 v-24 l20 -18 l20 18 v24 h36 v-40 h30 v-20 l22 -20 l22 20 v20 h28 v40 h36 v-24 l20 -18 l20 18 v84z"/>
+ </g>
+ <path d="M52 296 q-16 -56 16 -88 q6 32 24 46 q-2 -26 14 -42 q16 40 -6 84z" fill="url(#sFire)"/>
+ <path d="M158 258 q-18 -62 18 -96 q8 36 26 50 q-2 -30 16 -46 q18 44 -8 92z" fill="url(#sFire)"/>
+ <path d="M268 292 q-16 -52 14 -82 q6 30 22 42 q-2 -24 14 -38 q14 38 -6 78z" fill="url(#sFire)"/>
+ <path d="M110 320 q-10 -34 10 -54 q4 20 15 28 q-1 -16 9 -26 q10 26 -4 52z" fill="#f4c473" opacity=".8"/>
+ <g fill="#f4c473"><circle cx="80" cy="150" r="3"/><circle cx="200" cy="110" r="3.4"/><circle cx="300" cy="160" r="2.6"/><circle cx="150" cy="130" r="2.2"/><circle cx="250" cy="90" r="2"/><circle cx="40" cy="200" r="2"/></g>
+ <path d="M60 170 q20 -30 8 -60 M210 120 q18 -26 8 -54" stroke="#4a3a22" stroke-width="8" fill="none" opacity=".5" stroke-linecap="round"/>
+ <rect y="360" width="360" height="280" fill="#070503"/>
+ <ellipse cx="180" cy="240" rx="220" ry="180" fill="url(#sGlowR)" opacity=".4"/>`),
+
+/* 검은 새벽 — 열린 문틈의 빛, 그 앞을 가로지른 검 */
+t0:scWrap(`
+ <rect x="118" y="60" width="124" height="460" fill="#050302"/>
+ <rect x="118" y="60" width="16" height="460" fill="${W2}"/>
+ <rect x="226" y="60" width="16" height="460" fill="${W2}"/>
+ <path d="M150 76 h60 v430 h-60z" fill="url(#sGlow)" opacity=".5"/>
+ <path d="M164 76 h32 v430 h-32z" fill="#e8d8ad" opacity=".14"/>
+ <g transform="rotate(-30 180 300)">
+  <path d="M172 130 L192 130 L186 388 L178 388 Z" fill="url(#sSteel)"/>
+  <path d="M180 134 L184 134 L182 384 Z" fill="#f4f8fb" opacity=".9"/>
+  <rect x="152" y="386" width="60" height="14" rx="6" fill="${W1}"/>
+  <rect x="172" y="400" width="20" height="44" rx="8" fill="${W2}"/>
+  <circle cx="182" cy="452" r="10" fill="${W1}"/>
+ </g>
+ <path d="M212 372 q4 14 -1 24" stroke="#a03a2b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".85"/>
+ <ellipse cx="180" cy="300" rx="160" ry="240" fill="url(#sGlow)" opacity=".2"/>`),
+
+/* 그림자 반역 — 그대의 군기, 교차한 창, 바닥에 구른 왕관 */
+t1:scWrap(`
+ <g stroke="${W2}" stroke-width="10"><line x1="90" y1="480" x2="210" y2="110"/><line x1="270" y1="480" x2="150" y2="110"/></g>
+ <path d="M210 110 l-14 -34 l28 8z" fill="#5a6570" stroke="#8d9cab" stroke-width="2.5"/>
+ <path d="M150 110 l14 -34 l-28 8z" fill="#5a6570" stroke="#8d9cab" stroke-width="2.5"/>
+ <rect x="126" y="150" width="108" height="190" fill="#3a1e14"/>
+ <path d="M126 340 h108 l-54 46z" fill="#3a1e14"/>
+ <rect x="126" y="150" width="108" height="12" fill="#e09a3e" opacity=".85"/>
+ <g fill="#e09a3e" opacity=".9">
+  <path d="M180 200 l14 26 h-28z"/><rect x="172" y="230" width="16" height="52" rx="4"/><path d="M180 300 l14 -14 h-28z"/></g>
+ <g stroke="#f4c473" stroke-width="5" fill="none">
+  <path d="M136 512 q4 -22 24 -22 q8 -14 24 -8 q14 -10 24 2 q16 -4 18 14 q10 12 -4 22 l-74 4 q-14 -2 -12 -12z" opacity="0"/>
+  <path d="M142 508 v22 h60 v-22 l-14 12 l-16 -16 l-16 16z"/></g>
+ <path d="M142 508 v22 h60 v-22 l-14 12 l-16 -16 l-16 16z" fill="#e09a3e" opacity=".18" transform="rotate(24 172 519)"/>
+ <ellipse cx="180" cy="280" rx="190" ry="220" fill="url(#sGlow)" opacity=".22"/>`),
+
+/* 성문이 열린 아침 — 활짝 열린 성문으로 쏟아지는 새벽빛 */
+win:scWrap(`
+ <path d="M28 640 V240 Q28 120 180 116 Q332 120 332 240 V640 Z" fill="${W2}"/>
+ <path d="M60 640 V250 Q60 150 180 146 Q300 150 300 250 V640 Z" fill="#0a0704"/>
+ <path d="M60 640 V250 Q60 150 180 146 Q300 150 300 250 V640 Z" fill="url(#sDawn)"/>
+ <circle cx="180" cy="330" r="60" fill="#f4c473" opacity=".85"/>
+ <circle cx="180" cy="330" r="110" fill="url(#sGlow)"/>
+ <g stroke="#f4c473" stroke-width="3.5" opacity=".75">
+  <line x1="180" y1="170" x2="180" y2="640"/><line x1="120" y1="200" x2="66" y2="640"/><line x1="240" y1="200" x2="294" y2="640"/>
+  <line x1="146" y1="184" x2="112" y2="640"/><line x1="214" y1="184" x2="248" y2="640"/></g>
+ <path d="M74 636 V262 L60 252 V640z" fill="${W1}"/>
+ <path d="M286 636 V262 L300 252 V640z" fill="${W1}"/>
+ <g stroke="${W3}" stroke-width="4" fill="none" stroke-linecap="round">
+  <path d="M120 210 q10 -10 20 0"/><path d="M226 196 q9 -9 18 0"/><path d="M158 176 q8 -8 16 0"/></g>
+ <g fill="${W3}"><circle cx="120" cy="560" r="18"/><circle cx="150" cy="572" r="20"/><path d="M104 640 v-64 q16 -10 32 0 v64z" opacity="0"/></g>
+ <g fill="${W3}"><circle cx="236" cy="566" r="19"/></g>`),
+
+/* 꺼지지 않았던 촛불 — 열린 성문 앞, 도시를 지킨 큰 촛불 */
+winCure:scWrap(`
+ <path d="M28 640 V240 Q28 120 180 116 Q332 120 332 240 V640 Z" fill="${W2}"/>
+ <path d="M60 640 V250 Q60 150 180 146 Q300 150 300 250 V640 Z" fill="#0a0704"/>
+ <path d="M60 640 V250 Q60 150 180 146 Q300 150 300 250 V640 Z" fill="url(#sDawn)" opacity=".55"/>
+ <path d="M74 636 V262 L60 252 V640z" fill="${W1}"/>
+ <path d="M286 636 V262 L300 252 V640z" fill="${W1}"/>
+ <rect x="146" y="352" width="68" height="180" rx="10" fill="#d8c79e"/>
+ <path d="M146 362 q18 14 34 2 q18 12 34 -2 v-10 h-68z" fill="#e8dcb6"/>
+ <rect x="176" y="316" width="8" height="40" fill="#3a2c16"/>
+ <path d="M180 236 q30 42 0 76 q-30 -34 0 -76z" fill="url(#sFire)"/>
+ <path d="M180 262 q13 20 0 38 q-13 -18 0 -38z" fill="#fbe9c0"/>
+ <circle cx="180" cy="286" r="90" fill="url(#sGlow)"/>
+ <circle cx="180" cy="286" r="150" fill="url(#sGlow)" opacity=".5"/>
+ <ellipse cx="180" cy="540" rx="120" ry="18" fill="#000" opacity=".45"/>`)
+};
+const COL_ORDER=['win','winCure','f0','f1','m0','m1','h0','h1','t0','t1'];
+
+/* ══════════ 저장소 (가능하면 기기 저장, 안 되면 세션 유지) ══════════ */
+const store={
+  get(k){try{return window.localStorage.getItem(k);}catch(e){return (this._m&&this._m[k])||null;}},
+  set(k,v){try{window.localStorage.setItem(k,v);}catch(e){(this._m=this._m||{})[k]=v;}}
+};
+let unlocked=new Set((store.get('sgdn_endings')||'').split(',').filter(Boolean));
+function unlock(key){
+  unlocked.add(key);
+  store.set('sgdn_endings',[...unlocked].join(','));
+  updateColBtn();
+}
+function updateColBtn(){
+  document.getElementById('colBtn').textContent=UI.colBtn[LANG](unlocked.size);
+}
+function renderCollection(){
+  const g=document.getElementById('colGrid');
+  g.innerHTML='';
+  COL_ORDER.forEach(k=>{
+    const has=unlocked.has(k);
+    const cell=document.createElement('div');
+    cell.className='colCell'+(has?'':' locked');
+    cell.innerHTML=has
+      ?`<div class="thumb">${ENDSCENES[k]}</div><div class="cName">${T(ENDINGS[k].t)}</div>`
+      :`<div class="thumb">?</div><div class="cName">???</div>`;
+    g.appendChild(cell);
+  });
+}
+
+/* 선택 결과 문장 — 카드 id별, 선택지 순서대로. null = 도박 선택지(자체 결과문 보유) */
+const RESTEXT={
+b_gate:[
+ {ko:'그날 밤, 도시의 모든 문에 빗장이 걸렸다.',en:'That night, every gate in the city was barred.'},
+ {ko:'하루 동안 수천이 오갔다. 누가 무엇을 들여왔는지는 아무도 모른다.',en:'For one day, thousands passed through. What came in with them, no one knows.'},
+ {ko:'떠나는 상인들이 통행세로 곡식을 두고 갔다. 성문은 그 뒤로 닫혔다.',en:'The departing merchants paid their way out in grain. The gates closed behind them.'}],
+b_first:[
+ {ko:'그 집 대문에 조용히 빗장이 걸렸다. 이웃들은 아직 모른다.',en:'A bar went quietly across that door. The neighbors don\'t know yet.'},
+ {ko:'방이 붙자 도시가 술렁였다. 그러나 우물가의 소문보다는 나았다.',en:'The notice set the city murmuring — but better that than whispers at the well.'},
+ {ko:'소문은 묻혔다. 병은 묻히지 않았다.',en:'The rumor was buried. The sickness was not.'}],
+b_death:[
+ {ko:'광장이 얼어붙었다. 그러나 이제 모두가 손을 씻기 시작했다.',en:'The square went cold — but now everyone began to wash their hands.'},
+ {ko:'사람들은 안도했다. 병은 그 안도 속을 파고들었다.',en:'The people breathed easy. The sickness moved through that ease.'},
+ {ko:'두려움과 함께 지침이 내려갔다. 도시는 떨면서도 움직였다.',en:'Fear went out with instructions attached. The city trembled, and moved.'}],
+a1_grain:[
+ {ko:'창고 문이 열리고 밀이 시장으로 돌아왔다. 상인들의 눈초리는 차가웠다.',en:'Warehouse doors opened and wheat returned to market. The merchants\' eyes went cold.'},
+ {ko:'밀값이 이틀 만에 두 배가 되었다.',en:'Wheat doubled in price within two days.'},
+ {ko:'웃돈 소문이 돌자 남은 밀값마저 들썩였다.',en:'Word of the premium you paid set every remaining price stirring.'}],
+a1_smuggle:[
+ {ko:'개구멍마다 창이 세워졌다. 성벽 아래가 조용해졌다.',en:'A spear went up at every gap. The foot of the wall fell silent.'},
+ {ko:'벌금 궤가 차오르고, 밀수는 그저 은밀해졌다.',en:'The fine chest filled; the smuggling merely grew quieter.'},
+ {ko:'성벽의 구멍이 늘었다. 드나드는 것이 사람만은 아니었다.',en:'The holes multiplied. People were not the only things passing through.'}],
+a1_bell:[
+ {ko:'아침마다 종이 울리고, 광장에 어깨가 맞닿았다.',en:'Each morning the bell rang, and shoulders pressed together in the square.'},
+ {ko:'종소리만이 빈 광장을 건너갔다.',en:'The bell alone crossed the empty square.'},
+ {ko:'교회 문에 자물쇠가 걸렸다. 기도는 각자의 몫이 되었다.',en:'A lock went on the church door. Prayer became a private matter.'}],
+a1_inquiry:[
+ {ko:'전령의 얼굴이 굳었다. 광장에는 숨기지 않는 나리라는 말이 돌기 시작했다.',en:'The envoy\'s face hardened. In the square, word began to spread of a steward who hides nothing.'},
+ {ko:'애매한 답신이 떠났다. 시간을 벌었다 — 얼마나일지는 모른다.',en:'A vague reply rode off. You bought time — how much, no one knows.'},
+ {ko:'영주는 안심했다. 언젠가 치를 값으로.',en:'The lord was reassured — at a price to be paid later.'}],
+a1_father:[
+ {ko:'새벽, 뒷문이 잠깐 열렸다 닫혔다. 아이는 아빠 품에서 잠들었다.',en:'At dawn, the back door opened and shut. The child fell asleep in his father\'s arms.'},
+ {ko:'성벽 위와 아래에서 두 사람이 오래 손을 흔들었다.',en:'From the wall and below it, two people waved for a long time.'},
+ {ko:'아이는 울지 않았다. 그게 더 오래 남았다.',en:'The child did not cry. Somehow, that stayed with you longer.'}],
+a1_salt:[
+ {ko:'소금 자루가 관의 곳간으로 들어왔다. 발도의 미소도 함께.',en:'The salt came into the city stores — and Baldo\'s smile with it.'},
+ {ko:'병사들이 창고를 비웠다. 상인들의 장부에 그대의 이름이 적혔다.',en:'Soldiers emptied the warehouse. Your name went into every merchant\'s ledger.'},
+ {ko:'발도는 어깨를 으쓱하고 떠났다. 소금이 없으니, 절여 둘 고기도 없었다.',en:'Baldo shrugged and left. Without salt, there was no meat worth curing.'}],
+a1_bath:[
+ {ko:'목욕탕 굴뚝의 연기가 멎었다. 골목에서 쉰내가 나기 시작했다.',en:'The bathhouse chimney went cold. The alleys began to sour.'},
+ {ko:'홀수 날마다 줄이 두 배로 늘었다. 그래도 도시는 씻었다.',en:'The odd-day lines ran twice as long — but the city washed.'},
+ {ko:'김이 오르는 탕 안에서 소문과 병이 함께 몸을 담갔다.',en:'In the steaming water, rumor and sickness bathed together.'}],
+a1_rats:[
+ {ko:'그림이 하수구에서 죽은 쥐 스무 마리를 들고 나왔다. 표정이 어두웠다.',en:'Grim came up from the sewers with twenty dead rats and a dark look.'},
+ {ko:'골목마다 쥐약이 깔렸다. 아침마다 작은 사체들이 치워졌다.',en:'Poison went down every alley. Each morning, small bodies were swept away.'},
+ {ko:'쥐들은 계속 죽었다. 아무도 세지 않았을 뿐이다.',en:'The rats kept dying. It\'s just that no one was counting.'}],
+a1_noble:[
+ {ko:'귀족은 얼굴이 붉어져 돌아갔다. 광장에는 그 이야기가 사흘을 돌았다.',en:'The nobleman stormed off red-faced. The square told the story for three days.'},
+ {ko:'사냥 나팔 소리가 성 밖에서 들렸다. 광장의 표정은 싸늘했다.',en:'A hunting horn sounded beyond the walls. The square\'s face went cold.'},
+ {ko:'뒷문이 소리 없이 열렸다. 본 사람이 없기를 바랄 뿐.',en:'The back gate opened without a sound. You could only hope no one saw.'}],
+a1_fest:[
+ {ko:'광장에 웃음이 돌아왔다. 하룻밤 동안은.',en:'Laughter returned to the square. For one night.'},
+ {ko:'걸어 둔 등불이 내려졌다. 실망은 조용했지만 길게 남았다.',en:'The lanterns came down. The disappointment was quiet, and it lingered.'},
+ {ko:'잔치 대신 김이 오르는 솥이 거리마다 놓였다.',en:'In place of a feast, steaming pots lined the streets.'}],
+a1_herb:[null,
+ {ko:'자루가 광장에서 탔다. 약초꾼의 원망도 연기와 함께 피어올랐다.',en:'The sack burned in the square — the herbalist\'s curses rising with the smoke.'},
+ {ko:'약초꾼은 다음 골목에서 좌판을 다시 폈다.',en:'He set up his stall again, one alley over.'}],
+a1_wedding:[
+ {ko:'풍악이 울리고 온 동네가 술잔을 돌렸다.',en:'Music played, and the whole quarter passed the cup.'},
+ {ko:'작은 마당에서 조용한 혼례가 치러졌다. 신부는 그래도 웃었다.',en:'A quiet wedding in a small courtyard. The bride smiled anyway.'},
+ {ko:'혼례복은 장 속으로 들어갔다. "역병이 끝나면"이라는 말과 함께.',en:'The wedding dress went back into the chest, with the words "when the plague ends."'}],
+a1_dogs:[
+ {ko:'몽둥이가 내려지고, 개들은 골목으로 돌아왔다.',en:'The clubs were lowered, and the dogs returned to the alleys.'},
+ {ko:'관사 뒷마당이 개 짖는 소리로 가득해졌다. 쥐잡이꾼은 흡족해했다.',en:'The courtyard filled with barking. Grim looked satisfied.'},
+ {ko:'며칠 뒤, 골목의 개들이 사라졌다. 쥐들은 아니었다.',en:'Within days, the dogs were gone from the alleys. The rats were not.'}],
+a1_letters:[
+ {ko:'매일 저녁 바구니가 오르내렸다. 성벽 위에 답장을 기다리는 줄이 생겼다.',en:'Baskets rose and fell each evening. A line formed on the wall, waiting for replies.'},
+ {ko:'편지마다 연기 냄새가 뱄다. 그래도 소식은 소식이었다.',en:'Every letter smelled of smoke. Word was word, all the same.'},
+ {ko:'끊긴 밧줄이 성벽 아래 늘어졌다. 그리움도 함께.',en:'The cut ropes hung slack at the foot of the wall. So did the longing.'}],
+a1_ale:[
+ {ko:'해 질 녘, 술집 문이 하나씩 닫혔다. 노랫소리는 골목으로 숨어들었다.',en:'At dusk the taverns shut one by one. The singing slipped into the alleys.'},
+ null,
+ {ko:'술집의 불은 밤새 꺼지지 않았다.',en:'The tavern lights burned all night.'}],
+b_cross:[
+ {ko:'여섯 골목에 말뚝과 밧줄이 둘러쳐졌다. 안쪽의 눈들이 그대를 지켜보았다.',en:'Stakes and rope went round six lanes. Eyes watched you from inside.'},
+ {ko:'수레가 병자들을 싣고 성문을 나섰다. 울음소리가 오래 따라왔다.',en:'Carts carried the sick out through the gate. The weeping followed you a long way.'},
+ {ko:'간호인들이 붉은 십자가 문을 두드렸다. 몇은 다시 나오지 못했다.',en:'Caretakers knocked on the marked doors. Some never came back out.'}],
+b_lab:[
+ {ko:'지하실 창에 검은 천이 드리워졌다. 새벽까지 꺼지지 않는 등불을, 이웃들이 수군거렸다.',en:'Black cloth went over the cellar window. The neighbors began to whisper about the lamp that never went out.'},
+ {ko:'사제는 사흘을 침묵한 끝에 고개를 끄덕였다. "신께서 보고 계십니다."',en:'The priest was silent for three days, then nodded. "God is watching."'},
+ {ko:'에드윈은 말없이 물러났다. 답을 찾을 다른 길은 없었다.',en:'Edwin withdrew without a word. There was no other road to an answer.'}],
+b_cure:[
+ {ko:'곳간 절반이 약탕으로 들어갔다. 도시 곳곳에서 열이 꺾이기 시작했다.',en:'Half the granary went into the kettles. Across the city, fevers began to break.'},
+ {ko:'가장 위중한 병상부터 약이 돌았다. 나머지는 기다렸다.',en:'The medicine went to the gravest beds first. The rest waited.'},
+ {ko:'에드윈은 약병을 내려놓았다. "그럼 셋만으로 끝이겠군요."',en:'Edwin set the vial down. "Then three is where it ends."'}],
+b_trial:[
+ {ko:'그대가 재판정 문 앞에 섰다. 교회도 그 앞에서는 멈췄다.',en:'You stood before the courtroom door. Even the Church stopped there.'},
+ {ko:'재판정에서 에드윈은 고개를 들지 않았다. 도시는 의사를 잃었다.',en:'At trial, Edwin never raised his head. The city lost its physician.'},
+ {ko:'새벽 수레에 실려 에드윈이 도시를 떠났다. 연구 노트만 남았다.',en:'A dawn cart carried Edwin away. Only his notes remained.'}],
+b_granary:[
+ {ko:'배급 줄의 그릇이 절반만 채워졌다. 원망은 그릇보다 가득했다.',en:'The ration bowls came back half-full. The resentment came back overflowing.'},
+ {ko:'곳간지기는 장부를 덮으며 한숨을 쉬었다. "보름입니다, 나리."',en:'The keeper closed his ledger with a sigh. "Fifteen days, my lord."'},
+ {ko:'귀족들의 창고가 열렸다. 광장은 환호했고, 저택들은 이를 갈았다.',en:'The nobles\' stores were opened. The square cheered; the manors ground their teeth.'}],
+a2_nurse:[
+ {ko:'쇠고랑 대신 앞치마를 두른 죄수들이 병상 사이를 오갔다.',en:'Prisoners traded their chains for aprons and moved between the beds.'},
+ {ko:'수녀들이 도착했다. 병상 곁에 다시 사람의 손이 닿았다.',en:'The sisters arrived. Human hands returned to the bedsides.'},
+ {ko:'닫힌 문 너머의 기침 소리가 골목의 전부가 되었다.',en:'Coughing behind closed doors became the whole sound of the lanes.'}],
+a2_sick:[
+ {ko:'두 병사가 격리 막사로 옮겨졌다. 동료들의 눈빛이 복잡했다.',en:'The two men were moved to quarantine. Their comrades\' eyes were hard to read.'},
+ {ko:'열이 오른 채로 두 병사가 초소에 섰다. 창이 흔들렸다.',en:'Fevered, the two stood their post. Their spears wavered.'},
+ {ko:'두 병사는 급료 주머니를 쥔 채 잠들었다. 초소는 좁아졌지만 버텼다.',en:'They slept with their pay in hand. The watch ran thin, but it held.'}],
+a2_rites:[
+ {ko:'어떤 이는 기도 없이 떠났다. 남은 가족의 눈이 교회를 향했다.',en:'Some passed without a prayer. The eyes of the living turned toward the church.'},
+ {ko:'사제들은 병상을 지켰다. 그리고 하나둘, 사제의 병상이 생겼다.',en:'The priests kept their vigils. And one by one, beds were made for priests.'},
+ {ko:'창 너머로 기도문이 흘러들었다. 유리 한 장이 많은 것을 갈랐다.',en:'Prayers drifted in through the windows. A pane of glass divided a great deal.'}],
+a2_quack:[
+ {ko:'기둥에 묶인 약장수 앞에 빈 약병이 쌓였다.',en:'The empty bottles piled up at the feet of the bound apothecary.'},
+ {ko:'은화가 주인들에게 돌아갔다. 믿음은 돌아가지 못했다.',en:'The silver went back to its owners. The faith did not.'},
+ {ko:'가짜 약은 계속 팔렸다. 진짜 절망에게.',en:'The false cure kept selling — to real despair.'}],
+a2_rope:[
+ {ko:'밤마다 광주리가 오르내렸다. 값은 올라가기만 했다.',en:'The baskets rose and fell each night. The prices only rose.'},
+ {ko:'관인이 찍힌 광주리만 성벽을 올랐다. 뒷골목의 원성도 올랐다.',en:'Only city-stamped baskets climbed the wall. So did the grumbling in the back streets.'},
+ {ko:'끊긴 밧줄들이 바람에 흔들렸다. 성벽 밖 상인들은 짐을 쌌다.',en:'The cut ropes swayed in the wind. The merchants outside packed up.'}],
+a2_digger:[
+ {ko:'병사들이 삽을 들었다. 창을 들 때보다 말이 없었다.',en:'The soldiers took up shovels — quieter than they ever were with spears.'},
+ {ko:'품삯 방이 붙자 삽을 든 줄이 생겼다. 배고픔이 두려움을 이겼다.',en:'Wages were posted, and a line of shovels formed. Hunger beat fear.'},
+ {ko:'미뤄진 것들은 사라지지 않았다. 냄새가 먼저 알려 왔다.',en:'What was put off did not go away. The smell announced it first.'}],
+a2_report:[
+ {ko:'진짜 숫자가 영주의 책상에 올랐다. 답신은 없었지만, 숫자를 숨기지 않았다는 말은 골목에 남았다.',en:'The true count reached the lord\'s desk. No reply came — but the lanes remembered that the numbers were not hidden.'},
+ {ko:'절반의 숫자가 떠났다. 나머지 절반은 그대의 몫으로 남았다.',en:'Half the number rode off. The other half stayed behind — yours to carry.'},
+ {ko:'전령은 빈손으로 돌아갔다. 영주의 인내에도 바닥이 있다.',en:'The envoy went back empty-handed. Even a lord\'s patience has a floor.'}],
+a2_oven:[
+ {ko:'밤새 화덕이 붉었다. 빵 냄새가 두려움을 조금 덮었다.',en:'The ovens glowed all night. The smell of bread covered a little of the fear.'},
+ {ko:'바트는 어깨를 늘어뜨렸다. "믿을 게 필요했을 뿐인데."',en:'Bart\'s shoulders fell. "Folk just needed something to believe."'},
+ {ko:'연기는 하늘로, 믿음은 골목으로 퍼졌다.',en:'The smoke spread to the sky, the belief through the lanes.'}],
+a2_stream:[
+ {ko:'병자 옷은 아래쪽 물로 밀려났다. 강은 불평하지 않았다.',en:'The sick-wash moved downstream. The river did not complain.'},
+ {ko:'빨래터마다 솥이 걸렸다. 김 사이로 메이블이 고개를 끄덕였다.',en:'Kettles went up at every washing stone. Through the steam, Mabel nodded.'},
+ {ko:'강은 계속 하나였다. 병도 그랬다.',en:'The stream stayed one stream. So did the sickness.'}],
+a2_flee:[
+ {ko:'성벽의 횃불이 늘었다. 밧줄은 줄었다 — 보이는 곳에서는.',en:'More torches on the wall. Fewer ropes — where they could be seen.'},
+ {ko:'밤마다 그림자 몇이 성벽을 넘었다. 떠난 수만큼, 배급 줄은 짧아졌다.',en:'Each night, a few shadows went over the wall. For every one who left, the ration line grew shorter.'},
+ {ko:'광장 기둥에 도망자들이 묶였다. 떠나려던 발걸음들이 멈칫했다.',en:'Runaways were bound at the pillar. Feet that meant to leave hesitated.'}],
+a2_widow:[
+ {ko:'붉은 표식 아래로 배급 자루가 놓였다. 아이들은 굶지 않았다.',en:'Below the red mark, a ration sack was set down. The children did not starve.'},
+ {ko:'하루 동안 한나는 삯일 세 개를 얻었다. 그 하루가 무엇을 옮겼는지는 모른다.',en:'In one day, Hanna found three jobs. What that day carried with it, no one knows.'},
+ {ko:'문에 표식이 그려졌다. 규칙은 지켜졌고, 골목은 그것을 기억했다.',en:'The mark went up. The rules were kept — and the lane remembered it.'}],
+a2_raid:[null,
+ {ko:'지원자 여섯이 강을 건넜다. 넷이 곡식을 지고 돌아왔다.',en:'Six volunteers crossed the river. Four came back carrying grain.'},
+ {ko:'강 건너 마을은 그대로 버려져 있었다. 곳간의 셈만 빠듯해졌다.',en:'The village stayed abandoned across the river. The granary\'s arithmetic grew tighter.'}],
+a2_bells:[
+ {ko:'종탑이 침묵했다. 도시는 죽음을 세는 법을 잊기로 했다.',en:'The bell tower fell silent. The city chose to stop counting its dead.'},
+ {ko:'정오의 종이 길게 울렸다. 도시가 잠시 멈춰 고개를 숙였다.',en:'The noon bell rang long. The city paused, and bowed its head.'},
+ {ko:'종은 계속 울렸다. 사람들은 종소리를 세지 않게 되었다.',en:'The bell went on tolling. People stopped counting the tolls.'}],
+a2_orphans:[
+ {ko:'수도원 마당에 아이들 빨래가 널렸다. 작은 것들이 바람에 흔들렸다.',en:'Children\'s laundry lined the convent yard — small things swaying in the wind.'},
+ {ko:'골목마다 심부름 아이들이 뛰었다. 주머니엔 동전이, 입엔 빵이.',en:'Errand-children ran the lanes — coins in their pockets, bread in their mouths.'},
+ {ko:'아이들은 스스로 크는 법을 배웠다. 너무 빨리.',en:'The children learned to raise themselves. Too quickly.'}],
+a2_stranger:[null,
+ {ko:'떠돌이는 물을 긷고 붕대를 삶았다. 에드윈의 잔소리를 들으며.',en:'The drifter hauled water and boiled bandages — to the sound of Edwin\'s scolding.'},
+ {ko:'떠돌이는 옥에 갇혔다. 에드윈은 사흘 동안 말을 걸지 않았다.',en:'The drifter went to the cells. Edwin didn\'t speak to you for three days.'}],
+a2_curfew:[
+ {ko:'해가 지면 거리가 비었다. 창문 안쪽의 불빛만 남았다.',en:'The streets emptied at sundown. Only the lights behind windows remained.'},
+ {ko:'자정의 종과 함께 골목이 잠들었다. 초저녁의 숨통은 남겨 둔 채.',en:'The lanes went to sleep at the midnight bell — the early evening left to breathe.'},
+ {ko:'밤은 사람들의 것으로 남았다. 병의 것이기도 했다.',en:'The night remained the people\'s. It was also the plague\'s.'}],
+b_steward:[
+ {ko:'새벽, 교수대에 밧줄이 걸렸다. 곳간 자물쇠는 다시 뜯기지 않았다.',en:'At dawn, a rope went up on the gallows. The granary lock was never broken again.'},
+ {ko:'관리인은 조용히 사라졌다. 소문은 조용히 퍼졌다.',en:'The ration master vanished quietly. The rumor spread the same way.'},
+ {ko:'"아이가 굶고 있었습니다." 그 말은 광장에도 닿았다.',en:'"My child was starving." The words reached the square as well.'}],
+b_ultimatum:[
+ {ko:'답신이 떠났다. 이제 열흘 안에 그 말을 사실로 만들어야 한다.',en:'The reply rode off. Now you have ten days to make it true.'},
+ {ko:'광장은 그 답신을 낭독해 달라 했다. 영주의 서기는 이를 갈았다.',en:'The square asked to hear the reply read aloud. The lord\'s clerk ground his teeth.'},
+ {ko:'며칠 뒤, 수레 몇 대가 도착했다. 병사들의 눈초리와 함께.',en:'Days later, a few carts arrived — with soldiers\' eyes attached.'}],
+b_lastnight:[
+ {ko:'막사의 병자들이 그대를 알아보았다. 몇몇은 웃어 보이기까지 했다.',en:'The sick in the camps knew your face. A few even managed to smile.'},
+ {ko:'광장의 모닥불 곁에서 누군가 그대에게 자리를 내주었다.',en:'By the fire in the square, someone made room for you.'},
+ {ko:'성벽 위의 병사들이 말없이 경례했다. 서른 밤의 무게로.',en:'On the wall, the soldiers saluted without a word — with the weight of thirty nights.'}],
+a3_wake:[
+ {ko:'광장에 촛불이 줄지어 켜졌다. 그날 밤, 사람들은 오랜만에 울었다.',en:'Candles lined the square. That night, the people wept for the first time in a long while.'},
+ {ko:'죽은 자들의 이름은 장부에만 남았다.',en:'The names of the dead remained only in the ledger.'},
+ {ko:'종이 서른 번 울렸다. 사람들은 저마다의 자리에서 고개를 숙였다.',en:'The bell tolled thirty times. People bowed their heads wherever they stood.'}],
+a3_edwin:[
+ {ko:'에드윈은 항의하다 잠들었다. 열두 시간을.',en:'Edwin protested — then slept twelve hours.'},
+ {ko:'조수가 붙자 에드윈의 손이 다시 안정을 찾았다.',en:'With an assistant at his side, Edwin\'s hands steadied again.'},
+ {ko:'에드윈은 고개를 끄덕이고 다시 병상으로 향했다. 걸음이 느렸다.',en:'Edwin nodded and turned back to the wards. His steps were slow.'}],
+a3_wall:[
+ {ko:'빵집 주인도, 대장장이도 창을 들었다. 서툴지만, 섰다.',en:'The baker took up a spear; so did the smith. Clumsy — but they stood.'},
+ {ko:'남쪽 문이 벽돌로 메워졌다. 도시가 조금 더 작아졌다.',en:'The south gate was bricked shut. The city grew a little smaller.'},
+ {ko:'두 개의 문에 불이 켜졌다. 나머지는 어둠에 맡겨졌다.',en:'Two gates kept their torches. The rest were left to the dark.'}],
+a3_child:[
+ {ko:'아이는 "곧"이라는 말을 주머니에 넣고 뛰어갔다.',en:'The child pocketed the word "soon" and ran off.'},
+ {ko:'아이는 잠시 생각하더니 고개를 끄덕였다. "그럼 같이 버텨요."',en:'The child thought a moment, then nodded. "Then we\'ll hold on together."'},
+ {ko:'아이는 그대의 침묵을 오래 바라보다 돌아갔다.',en:'The child studied your silence a long while, then turned away.'}],
+a3_boat:[
+ {ko:'발도는 처음으로 값을 부르지 않고 고개를 숙였다.',en:'For the first time, Baldo bowed without naming a price.'},
+ {ko:'새벽 강 위로 배 한 척이 떠났다. 그 소문도 함께 떠다녔다.',en:'A boat slipped down the river at dawn. So did the rumor of it.'},
+ {ko:'배는 사흘 뒤 약재 상자를 싣고 돌아왔다.',en:'Three days later, the boat returned with crates of medicine.'}],
+a3_seed:[
+ {ko:'갓 구운 빵 냄새가 골목을 채웠다. 내일은 내일에게 맡겼다.',en:'The smell of fresh bread filled the lanes. Tomorrow was left to tomorrow.'},
+ {ko:'밀 포대에 \'봄\'이라고 적혔다. 배고픈 채로 적은 글자였다.',en:'On the sack, someone wrote "spring." Written on an empty stomach.'},
+ {ko:'절반은 빵이 되고, 절반은 약속이 되었다.',en:'Half became bread; half became a promise.'}],
+a3_grave:[
+ {ko:'성 밖에 긴 구덩이가 파였다. 이름 대신 숫자가 세워졌다.',en:'A long pit was dug beyond the walls. Numbers stood where names should have.'},
+ {ko:'강가에서 연기가 사흘을 올랐다. 사제는 끝까지 그 곁을 지켰다.',en:'Smoke rose by the river for three days. The priest never left its side.'},
+ {ko:'교회 앞마당에 새 흙이 줄지어 덮였다. 오스문드는 말없이 축복했다.',en:'Fresh earth lined the churchyard. Osmund blessed it without a word.'}],
+a3_dawn:[
+ {ko:'메이블의 얼굴이 밝아졌다. 그 미소가 정오 무렵 빨래터를 한 바퀴 돌았다.',en:'Mabel\'s face lit up. By noon, the smile had made its way around the washing stones.'},
+ {ko:'메이블은 입을 다물었다. 그래도 빨랫감은 계속 줄었다.',en:'Mabel said no more. The washing kept shrinking all the same.'},
+ {ko:'메이블은 그 끄덕임을 들고 새벽 강가로 돌아갔다.',en:'Mabel took that nod back with her to the dawn river.'}],
+a3_vault:[null,
+ {ko:'봉인은 그대로 남았다. 소문도 그대로 남았다.',en:'The seal stayed shut. So did the rumor.'}],
+a3_fire:[
+ {ko:'집 세 채가 무너지고 불길이 멈췄다. 골목은 살았다.',en:'Three houses came down, and the fire stopped. The lane survived.'},
+ {ko:'물동이가 밤새 오갔다. 새벽에야 잿더미 위로 김이 올랐다.',en:'Buckets passed hand to hand all night. By dawn, steam rose from the ashes.'},
+ {ko:'골목 하나가 재가 되었다. 재 위로는 아무것도 옮지 않는다.',en:'One lane burned to ash. Nothing spreads across ash.'}],
+a3_prophet:[
+ {ko:'광인은 옥에서도 외쳤다. 엿새 뒤, 아무도 죽지 않았다.',en:'The madman shouted on from his cell. Six days later, no one died.'},
+ {ko:'사제의 반박이 광장을 돌았다. 광인의 목소리가 처음으로 잦아들었다.',en:'The priest\'s rebuttal made the rounds. For the first time, the madman\'s voice faltered.'},
+ {ko:'엿새가 지났다. 광인은 새 날짜를 외치기 시작했다.',en:'Six days passed. The madman began shouting a new date.'}],
+a3_ledger:[null,
+ {ko:'서기는 한숨을 쉬며 진짜 숫자를 적어 내려갔다.',en:'The clerk sighed, and wrote the numbers as they were.'}],
+a3_well:[
+ {ko:'물표가 배급되었다. 줄은 길었지만, 주먹은 내려갔다.',en:'Water tokens went out. The line stayed long — but the fists came down.'},
+ {ko:'우물가에 창 하나가 세워졌다. 그것으로 충분했다.',en:'A single spear stood at the well. It was enough.'},
+ {ko:'우물가의 소란은 매일 아침의 일과가 되었다.',en:'The commotion at the well became part of every morning.'}],
+c_rats:[
+ {ko:'골목 셋이 불탔다. 쥐도, 그리고 몇 가지 다른 것들도 사라졌다.',en:'Three alleys burned. The rats vanished — along with a few other things.'},
+ {ko:'쥐잡이꾼들이 사방으로 흩어졌다. 자루가 밤마다 차올랐다.',en:'The rat-catchers scattered in every direction. The sacks filled night after night.'},
+ {ko:'광장에 무릎 꿇은 이들이 늘었다. 쥐들은 개의치 않았다.',en:'More knees touched the ground in the square. The rats paid no mind.'}],
+c_crowd:[
+ {ko:'그대가 홀로 광장에 서자 함성이 잦아들었다. 누군가 횃불을 내렸다.',en:'You stood alone before them, and the roar died down. Someone lowered a torch.'},
+ {ko:'창벽이 광장을 밀어냈다. 흩어진 것은 사람이지 분노가 아니었다.',en:'A wall of spears pushed the square back. It scattered the people — not the anger.'},
+ {ko:'빵이 손에서 손으로 건네졌다. 함성은 웅성거림이 되었다.',en:'Bread passed from hand to hand. The roar softened to a murmur.'}],
+c_mutiny:[
+ {ko:'급료 궤가 열렸다. 창끝이 다시 성벽 밖을 향했다.',en:'The pay chest opened. The spears turned outward again.'},
+ {ko:'광장에 목 둘이 걸렸다. 병사들의 침묵이 더 무서워졌다.',en:'Two heads went up in the square. The soldiers\' silence grew more frightening.'},
+ {ko:'열쇠가 넘어갔다. 곳간 앞에 새 자물쇠가 걸렸다 — 병사들의 것으로.',en:'The keys changed hands. A new lock went on the granary — the soldiers\' own.'}],
+c_thief:[
+ {ko:'광장의 처벌은 조용히 끝났다. 그 뒤로 곳간에 손대는 자는 없었다.',en:'The punishment ended quietly. After that, no hand touched the granary again.'},
+ {ko:'어미는 새벽마다 곳간 앞을 쓸었다. 아이들은 배급 줄에 섰다.',en:'The mother swept the granary steps each dawn. Her children stood in the ration line.'},
+ {ko:'어미는 자루를 안고 울며 돌아갔다. 광장 어딘가에서 박수가 났다.',en:'She went home weeping, the sack in her arms. Somewhere in the square, applause.'}],
+c_pride:[
+ {ko:'광장이 술렁였다. 그러나 선은 그어졌고, 지켜졌다.',en:'The square stirred — but the line was drawn, and it held.'},
+ {ko:'몇 가지 요구가 받아들여졌다. 나머지는 다음 요구가 되었다.',en:'Some demands were met. The rest became the next demands.'},
+ {ko:'그날은 모두가 웃었다. 곳간지기만 빼고.',en:'Everyone smiled that day. Except the granary keeper.'}],
+c_zeal:[
+ {ko:'단속반이 해산되었다. 뒷돈도, 표식도, 질서도 함께 흩어졌다.',en:'The wardens were disbanded. The bribes went — and the marks, and the order.'},
+ {ko:'주동자 셋이 광장에 세워졌다. 단속반은 조용해졌다.',en:'Three ringleaders stood in the square. The wardens grew quiet.'},
+ {ko:'단속은 계속되었다. 원성도, 뒷돈도.',en:'The enforcement went on. So did the resentment — and the bribes.'}],
+c_shadow:[
+ {ko:'경비대의 완장이 회수되었다. 로릭은 말없이 고개를 숙였다.',en:'The guard\'s privileges were stripped. Rorik bowed his head without a word.'},
+ {ko:'조용한 경고는 조용히 무시되었다.',en:'The quiet warning was quietly ignored.'},
+ {ko:'상인들의 장부에 적힌 이름이 늘었다. 밀정의 장부에도.',en:'More names went into the merchants\' ledgers. And into the spy\'s.'}]
+};
+
+/* ══════════ 난이도 ══════════ */
+const DIFFS={easy:{fx:0.85,pr:-1},normal:{fx:1,pr:0},hard:{fx:1.25,pr:1}};
+let DIFF='normal';
+function sfx(v){
+  if(!v)return 0;
+  const r=Math.round(Math.abs(v)*DIFFS[DIFF].fx);
+  return Math.sign(v)*Math.max(1,r);
+}
+
+/* ══════════ 언어 ══════════ */
+let LANG='ko';
+const T=v=>(v&&typeof v==='object'&&!Array.isArray(v))?(v[LANG]!==undefined?v[LANG]:v.ko):v;
+
+/* ══════════ 엔진 ══════════ */
+const app=document.getElementById('app');
+const stage=document.getElementById('stage');
+const choicesEl=document.getElementById('choices');
+const dayLine=document.getElementById('dayLine');
+const actChip=document.getElementById('actChip');
+const progFill=document.getElementById('progFill');
+const seals={};document.querySelectorAll('.seal').forEach(el=>seals[el.dataset.k]=el);
+const KEYS=['f','m','h','t'];
+const NUM=['Ⅰ','Ⅱ','Ⅲ','Ⅳ'];
+const KDAY=['첫째','둘째','셋째','넷째','다섯째','여섯째','일곱째','여덟째','아홉째','열째'];
+const actOf=d=>d<=10?1:d<=22?2:3;
+let S,day,act,flags,used,busy=false,started=false,cur=null;
+
+
+function reset(){
+  S={f:50,m:50,h:50,t:50};day=1;act=1;flags={};used=new Set();busy=false;cur=null;
+  if(resTimer){clearTimeout(resTimer);resTimer=null;}resNext=null;
+  document.getElementById('gRes').className='';
+  clearDeltas();
+  app.dataset.act='1';renderStats();
+  showAct(1,()=>beginDay());
+}
+function renderStats(){
+  KEYS.forEach(k=>{
+    seals[k].querySelector('.liq').style.height=Math.max(0,Math.min(100,S[k]))+'%';
+    const lbl=seals[k].querySelector('.lbl');
+    lbl.childNodes[0].textContent=T(UI.stat[k]);
+    lbl.querySelector('b').textContent=Math.max(0,Math.min(100,S[k]));
+    seals[k].classList.toggle('warn',S[k]<=20||S[k]>=80);
+  });
+}
+function renderDay(){
+  dayLine.textContent=UI.dayName[LANG](day);
+  actChip.textContent=UI.actChip[LANG](act,T(ACT_INFO[act].title));
+  progFill.style.width=(day/30*100)+'%';
+}
+const deltaQ={f:[],m:[],h:[],t:[]},deltaBusy={f:false,m:false,h:false,t:false};
+function showDelta(k,v,press){
+  deltaQ[k].push({v,press});
+  pumpDelta(k);
+}
+function pumpDelta(k){
+  if(deltaBusy[k]||!deltaQ[k].length)return;
+  deltaBusy[k]=true;
+  const {v,press}=deltaQ[k].shift();
+  const d=document.createElement('span');
+  d.className='delta '+(v>0?'up':'down')+(press?' press':'');
+  d.textContent=(v>0?'+':'')+v;
+  seals[k].appendChild(d);
+  setTimeout(()=>{d.remove();deltaBusy[k]=false;pumpDelta(k);},press?1150:950);
+}
+function clearDeltas(){
+  KEYS.forEach(k=>{deltaQ[k].length=0;deltaBusy[k]=false;
+    seals[k].querySelectorAll('.delta').forEach(d=>d.remove());});
+}
+
+function pickCard(){
+  const beats=CARDS.filter(c=>c.beat===day);
+  for(const b of beats){
+    if(b.req&&!flags[b.req])continue;
+    if(b.noreq&&flags[b.noreq])continue;
+    return b;
+  }
+  const crisis=CARDS.filter(c=>c.crisis&&!used.has(c.id)&&act>=(c.minAct||1)&&c.cond(S));
+  if(crisis.length)return crisis[Math.floor(Math.random()*crisis.length)];
+  let pool=CARDS.filter(c=>!c.beat&&!c.crisis&&c.act===act&&!used.has(c.id));
+  if(!pool.length)pool=CARDS.filter(c=>!c.beat&&!c.crisis&&!used.has(c.id));
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function beginDay(){
+  act=actOf(day);app.dataset.act=String(act);renderDay();
+  if(day>1){
+    const p=PRESSURE[act];let died=null;
+    for(const k in p){
+      let v=p[k];
+      if(v<0)v=Math.min(0,v-DIFFS[DIFF].pr);
+      if(k==='h'&&flags.cure)v=Math.min(0,v+2);
+      if(!v)continue;
+      S[k]+=v;showDelta(k,v,true);
+      if(S[k]<=0)died=k;
+    }
+    renderStats();
+    if(died)return ending(died+'0',true,true);
+  }
+  deal();
+}
+
+function deal(){
+  cur=pickCard();used.add(cur.id);
+  cur._order=null;
+  renderCard();
+  busy=false;
+}
+function renderCard(){
+  if(!cur)return;
+  const card=document.createElement('div');
+  card.className='card deal';
+  card.innerHTML=`
+    <span class="corner tl">${CORNER}</span><span class="corner tr">${CORNER}</span>
+    <span class="corner bl">${CORNER}</span><span class="corner br">${CORNER}</span>
+    <div class="portrait">${portraitSVG(cur.char)}</div>
+    <div class="roleTag">${T(cur.role)||''}</div>
+    <div class="charName">${T(cur.name)}</div>
+    <div class="nameOrn"><i></i></div>
+    <div class="cardText">${T(cur.text)}</div>`;
+  stage.innerHTML='';stage.appendChild(card);
+  attachTilt(card);
+  choicesEl.innerHTML='';
+  if(!cur._order){
+    cur._order=cur.opts.map((_,i)=>i);
+    for(let j=cur._order.length-1;j>0;j--){
+      const r=Math.floor(Math.random()*(j+1));
+      [cur._order[j],cur._order[r]]=[cur._order[r],cur._order[j]];
+    }
+  }
+  cur._order.forEach((oi,pos)=>{
+    const o=cur.opts[oi];
+    const b=document.createElement('button');
+    b.className='opt';
+    b.innerHTML=`<span class="num">${NUM[pos]}</span><span class="txt">${T(o.lbl)}</span>`;
+    b.addEventListener('click',()=>choose(oi,b,stage.querySelector('.card')));
+    choicesEl.appendChild(b);
+  });
+}
+
+function attachTilt(card){
+  const fig=card.querySelector('.figLy')||card.querySelector('.artImg');
+  const mid=card.querySelector('.ly-mid'), back=card.querySelector('.ly-back');
+  card.addEventListener('pointermove',e=>{
+    const r=card.getBoundingClientRect();
+    const nx=((e.clientX-r.left)/r.width-0.5)*2;
+    const ny=((e.clientY-r.top)/r.height-0.5)*2;
+    card.style.transform=`rotateY(${nx*4}deg) rotateX(${ny*-3}deg)`;
+    if(fig)fig.style.transform=`translateX(${nx*7}px)`;
+    if(mid)mid.style.transform=`translateX(${nx*3.5}px)`;
+    if(back)back.style.transform=`translateX(${nx*-2.5}px)`;
+  });
+  card.addEventListener('pointerleave',()=>{
+    card.style.transform='';
+    [fig,mid,back].forEach(l=>{if(l)l.style.transform='';});
+  });
+}
+
+let resTimer=null,resNext=null;
+function choose(i,btn,card){
+  if(busy)return;busy=true;
+  const o=cur.opts[i];
+  btn.classList.add('chosen');
+  choicesEl.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  card.classList.add('out');
+  let fx=o.fx||{},resTxt=null;
+  if(o.gamble){
+    const good=Math.random()<o.gamble.p;
+    const r=good?o.gamble.win:o.gamble.lose;
+    fx=r.fx;resTxt=T(r.txt);
+  }else{
+    const rr=(RESTEXT[cur.id]||[])[i];
+    if(rr)resTxt=T(rr);
+  }
+  const gr=document.getElementById('gRes');
+  setTimeout(()=>{
+    if(resTxt){
+      gr.querySelector('p').textContent=resTxt;
+      gr.querySelector('.tapHint').textContent=T(UI.tapNext);
+      gr.className='show';
+    }
+    if(o.flag)flags[o.flag]=true;
+    for(const k of KEYS){
+      if(fx[k]){
+        const sv=sfx(fx[k]);
+        S[k]+=sv;
+        showDelta(k,sv);
+        seals[k].classList.remove('pulse');void seals[k].offsetWidth;seals[k].classList.add('pulse');
+      }
+    }
+    renderStats();
+    resNext=()=>{
+      resNext=null;if(resTimer){clearTimeout(resTimer);resTimer=null;}
+      gr.className='';
+      for(const k of KEYS){
+        if(S[k]<=0)return ending(k+'0',true);
+        if(S[k]>=100)return ending(k+'1',true);
+      }
+      day++;
+      if(day>30)return ending(flags.cure?'winCure':'win',false);
+      const na=actOf(day);
+      if(na!==act){showAct(na,()=>beginDay());}
+      else beginDay();
+    };
+    if(!resTxt)resNext();
+  },430);
+}
+document.getElementById('gRes').addEventListener('pointerdown',()=>{if(resNext)resNext();});
+
+document.addEventListener('keydown',e=>{
+  if(resNext&&['Enter',' ','1','2','3','4'].includes(e.key)){resNext();return;}
+  if(!started||busy)return;
+  const idx=['1','2','3','4'].indexOf(e.key);
+  if(idx>=0){
+    const btns=choicesEl.querySelectorAll('.opt');
+    if(btns[idx]&&!btns[idx].disabled)btns[idx].click();
+  }
+});
+
+/* ══════════ 오버레이 ══════════ */
+const intro=document.getElementById('intro'),endOv=document.getElementById('ending'),actOv=document.getElementById('actOv');
+let actCb=null;
+function showAct(a,cb){
+  act=a;app.dataset.act=String(a);
+  document.getElementById('actNum').textContent=T(ACT_INFO[a].num);
+  document.getElementById('actTitle').textContent=T(ACT_INFO[a].title);
+  document.getElementById('actDesc').innerHTML=T(ACT_INFO[a].desc);
+  actCb=cb;
+  setTimeout(()=>actOv.classList.add('show'),200);
+}
+actOv.addEventListener('click',()=>{
+  if(!actCb)return;
+  actOv.classList.remove('show');
+  const cb=actCb;actCb=null;
+  setTimeout(cb,450);
+});
+let lastEnd=null;
+function ending(key,death,byPressure){
+  lastEnd={key,death,byPressure,act,day};
+  renderEnding();
+  unlock(key);
+  setTimeout(()=>endOv.classList.add('show'),300);
+}
+function renderEnding(){
+  if(!lastEnd)return;
+  const {key,death,byPressure}=lastEnd;
+  const e=ENDINGS[key];
+  KEYS.forEach(k=>S[k]=Math.max(0,Math.min(100,S[k])));renderStats();
+  endOv.classList.toggle('death',death);
+  document.getElementById('endScene').innerHTML=ENDSCENES[key]||'';
+  document.getElementById('endKicker').textContent=death?T(UI.endDeath):T(UI.endLive);
+  document.getElementById('endTitle').textContent=T(e.t);
+  const ec=document.getElementById('endCause');
+  if(death&&UI.cause[key]){
+    ec.className=key[0];
+    ec.querySelector('span').textContent=T(UI.cause[key]);
+  }else{
+    ec.className='hide';
+  }
+  const bod=(e.b[lastEnd.act]||e.b[2]||e.b);
+  document.getElementById('endBody').textContent=T(bod.ko?bod:e.b);
+  document.getElementById('endDays').textContent=death
+    ?(byPressure?UI.diedDawn[LANG](lastEnd.day):UI.diedNight[LANG](lastEnd.day))
+    :(T(UI.diffName[DIFF])+' · '+T(UI.survived).replace(/^— /,'')).replace(/^/,'— ');
+}
+/* ══════════ 언어 전환 ══════════ */
+function applyLang(l){
+  LANG=l;store.set('sgdn_lang',l);
+  app.dataset.lang=l;
+  document.querySelectorAll('#langSeg button').forEach(b=>b.classList.toggle('on',b.dataset.l===l));
+  document.getElementById('gameTitle').textContent=T(UI.title);
+  const intro=document.getElementById('intro');
+  intro.querySelector('.kicker').textContent=T(UI.introKicker);
+  intro.querySelector('h1').innerHTML=T(UI.introTitle);
+  intro.querySelector('.body').innerHTML=T(UI.introBody);
+  intro.querySelector('.hint').textContent=T(UI.introHint);
+  document.getElementById('startBtn').textContent=T(UI.start);
+  document.getElementById('againBtn').textContent=T(UI.again);
+  document.getElementById('colClose').textContent=T(UI.close);
+  const colOv=document.getElementById('colOv');
+  colOv.querySelector('.kicker').textContent=T(UI.colKicker);
+  colOv.querySelector('h1').textContent=T(UI.colTitle);
+  document.querySelector('#actOv .hint').textContent=T(UI.actTap);
+  applyDiff(DIFF);
+  updateColBtn();
+  if(started){
+    renderDay();renderStats();
+    if(actCb)showActTexts();
+    if(cur&&!busy&&!endOv.classList.contains('show'))renderCard();
+    if(endOv.classList.contains('show'))renderEnding();
+    if(colOv.classList.contains('show'))renderCollection();
+  }else{
+    renderStatsLabelsOnly();
+  }
+}
+function showActTexts(){
+  const a=act;
+  document.getElementById('actNum').textContent=T(ACT_INFO[a].num);
+  document.getElementById('actTitle').textContent=T(ACT_INFO[a].title);
+  document.getElementById('actDesc').innerHTML=T(ACT_INFO[a].desc);
+}
+function renderStatsLabelsOnly(){
+  KEYS.forEach(k=>{
+    const lbl=seals[k].querySelector('.lbl');
+    lbl.childNodes[0].textContent=T(UI.stat[k]);
+  });
+}
+document.querySelectorAll('#langSeg button').forEach(b=>{
+  b.addEventListener('click',()=>applyLang(b.dataset.l));
+});
+LANG=store.get('sgdn_lang')||'ko';
+
+function applyDiff(d){
+  DIFF=d;store.set('sgdn_diff',d);
+  document.querySelectorAll('#diffSeg button').forEach(b=>{
+    b.classList.toggle('on',b.dataset.d===d);
+    b.textContent=T(UI.diffName[b.dataset.d]);
+  });
+  document.getElementById('diffDesc').textContent=T(UI.diffDesc[d]);
+}
+document.querySelectorAll('#diffSeg button').forEach(b=>{
+  b.addEventListener('click',()=>applyDiff(b.dataset.d));
+});
+DIFF=store.get('sgdn_diff')||'normal';
+if(!DIFFS[DIFF])DIFF='normal';
+
+document.getElementById('colBtn').addEventListener('click',()=>{renderCollection();document.getElementById('colOv').classList.add('show');});
+document.getElementById('colClose').addEventListener('click',()=>{document.getElementById('colOv').classList.remove('show');});
+applyLang(LANG);
+document.getElementById('startBtn').addEventListener('click',()=>{intro.classList.remove('show');started=true;reset();});
+document.getElementById('againBtn').addEventListener('click',()=>{endOv.classList.remove('show');busy=false;reset();});
+</script>
+<script>
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
