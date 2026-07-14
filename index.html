@@ -344,7 +344,7 @@ header{position:relative;z-index:5;padding:14px 20px 0}
     </div>
     <div class="diffDesc" id="diffDesc">권장 난이도</div>
     <button class="btn" id="startBtn">촛불을 켜다</button>
-    <button class="colBtn" id="colBtn">엔딩 컬렉션 (0/10)</button>
+    <button class="colBtn" id="colBtn">엔딩 컬렉션 (0/15)</button>
   </div>
 
   <div class="overlay" id="actOv">
@@ -1168,6 +1168,21 @@ const ENDINGS={
  win:{t:{ko:'성문이 열린 아침',en:'The Morning the Gates Opened'},
   b:{ko:'서른 번째 아침, 종이 울렸다. 더는 새로 앓는 이가 없었다. 성문이 열리고, 도시는 그대의 이름을 기억하기로 했다.',
      en:'The bell rang on the thirtieth morning. No new fevers. The gates opened, and the city chose to remember your name.'}},
+ winFood:{t:{ko:'가득 찬 곳간',en:'The Full Granary'},
+  b:{ko:'성문이 열렸을 때, 곳간에는 아직 밀이 남아 있었다. 사람들은 그 겨울을 배곯지 않고 넘겼다. 광장에서 그대의 이름은 빵 냄새와 함께 불렸다.',
+     en:'When the gates opened, there was still wheat in the granary. The city crossed that winter without hunger — and in the square, your name was spoken with the smell of bread.'}},
+ winPeople:{t:{ko:'사람들의 도시',en:"The People's City"},
+  b:{ko:'서른 밤 동안 그대는 늘 사람을 먼저 지켰다. 성문이 열린 아침, 그대는 홀로 걷지 않았다. 도시 전체가 그대와 함께 걸어 나갔다.',
+     en:'For thirty nights you put the people first, whatever it cost. On the morning the gates opened, you did not walk alone — the whole city walked out with you.'}},
+ winClean:{t:{ko:'맑은 우물',en:'The Clear Well'},
+  b:{ko:'그대는 병이 지나갈 길을 하나씩 지워 갔다. 서른 번째 아침의 도시는 여위었으나, 우물은 맑았다. 이듬해 역병이 이웃 도시들을 덮쳤을 때, 이 도시만은 조용했다.',
+     en:'One by one, you erased every road the sickness could travel. The city was thin on the thirtieth morning, but its wells ran clear. When the plague took the neighboring towns a year later, this city stayed quiet.'}},
+ winIron:{t:{ko:'창끝의 질서',en:'Order at Spearpoint'},
+  b:{ko:'경비대는 마지막 밤까지 그대의 말 한마디로 움직였다. 창끝이 세운 질서 위에서 도시는 살아남았다. 사람들은 감사했고, 조금은 두려워했다.',
+     en:'To the last night, the guard moved at a single word from you. The city survived on an order held up by spearpoints. The people were grateful — and a little afraid.'}},
+ winAshes:{t:{ko:'잿더미의 아침',en:'A Morning of Ashes'},
+  b:{ko:'남은 것은 많지 않았다. 그래도 서른 번째 아침, 종은 울렸고 성문은 열렸다. 살아남았다 — 그 한마디 말고는 아무것도 덧붙일 수 없는 승리였다.',
+     en:'Little was left. Still, on the thirtieth morning the bell rang and the gates opened. The city survived — a victory with nothing more to be said for it.'}},
  winCure:{t:{ko:'성문이 열린 아침',en:'The Morning the Gates Opened'},
   b:{ko:'에드윈의 약이 도시를 구했다. 서른 번째 아침, 성문이 열렸다. 훗날 사람들은 이 밤들을 이렇게 불렀다 — 성문이 닫힌 밤, 그러나 꺼지지 않았던 촛불.',
      en:'Edwin\'s medicine saved the city. On the thirtieth morning, the gates opened. In later years, people spoke of these nights by a single name — the night the gates closed, and the candle that never went out.'}}
@@ -1192,14 +1207,12 @@ const UI={
    en:'The King ordered the gates closed.<br>The lord fled.<br><br>The city is yours to carry now.<br>Survive thirty nights.'},
  introHint:{ko:'결과는 겪어 봐야 안다.',en:'You won\'t know what a choice does until you make it.'},
  start:{ko:'촛불을 켜다',en:'Light the Candle'},
- colBtn:{ko:n=>`엔딩 컬렉션 (${n}/10)`,en:n=>`Ending Collection (${n}/10)`},
+ colBtn:{ko:n=>`엔딩 컬렉션 (${n}/15)`,en:n=>`Ending Collection (${n}/15)`},
  colKicker:{ko:'결말의 기록',en:'A RECORD OF ENDINGS'},
  colTitle:{ko:'엔딩 컬렉션',en:'Ending Collection'},
  close:{ko:'닫기',en:'Close'},
  again:{ko:'다시, 첫째 밤으로',en:'Again, from the First Night'},
  endDeath:{ko:'최후',en:'THE END'},endLive:{ko:'생존',en:'SURVIVED'},
- diedNight:{ko:d=>`— ${d}일째 밤에 스러지다 —`,en:d=>`— Fallen on night ${d} —`},
- diedDawn:{ko:d=>`— 역병이 깊어진 새벽, ${d}일째에 스러지다 —`,en:d=>`— Taken at dawn of night ${d}, as the plague deepened —`},
  survived:{ko:'— 서른 밤을 버텨내다 —',en:'— Thirty nights endured —'},
  actTap:{ko:'화면을 누르면 밤이 시작된다',en:'Tap to begin the night'},
  tapNext:{ko:'화면을 터치해 계속',en:'Tap to continue'},
@@ -1371,6 +1384,67 @@ win:scWrap(`
  <g fill="${W3}"><circle cx="120" cy="560" r="18"/><circle cx="150" cy="572" r="20"/><path d="M104 640 v-64 q16 -10 32 0 v64z" opacity="0"/></g>
  <g fill="${W3}"><circle cx="236" cy="566" r="19"/></g>`),
 
+/* 가득 찬 곳간 — 곳간 아치 아래 곡물 자루들 */
+winFood:scWrap(`
+ <ellipse cx="180" cy="380" rx="210" ry="170" fill="url(#sGlow)" opacity=".3"/>
+ <path d="M40 640 V400 q0 -64 70 -64 h140 q70 0 70 64 V640z" fill="${W2}"/>
+ <path d="M60 640 V424 q0 -48 52 -48 h136 q52 0 52 48 V640z" fill="${W1}"/>
+ <g fill="#c9a45c">
+  <path d="M96 640 v-92 q0 -34 34 -34 q34 0 34 34 v92z" opacity=".92"/>
+  <path d="M172 640 v-118 q0 -38 36 -38 q36 0 36 38 v118z"/>
+  <path d="M252 640 v-80 q0 -30 28 -30 q26 0 26 30 v80z" opacity=".8"/>
+ </g>
+ <g stroke="#5a4425" stroke-width="3" fill="none" opacity=".7">
+  <path d="M104 578 h52"/><path d="M180 552 h56"/><path d="M258 588 h44"/>
+ </g>
+ <ellipse cx="180" cy="606" rx="146" ry="16" fill="#000" opacity=".4"/>`),
+
+/* 사람들의 도시 — 열린 성문, 함께 걸어 나가는 사람들 */
+winPeople:scWrap(`
+ <path d="M60 640 V250 Q60 150 180 146 Q300 150 300 250 V640 Z" fill="#0a0704"/>
+ <path d="M60 640 V250 Q60 150 180 146 Q300 150 300 250 V640 Z" fill="url(#sDawn)" opacity=".7"/>
+ <circle cx="180" cy="300" r="96" fill="url(#sGlow)"/>
+ <path d="M74 636 V262 L60 252 V640z" fill="${W1}"/>
+ <path d="M286 636 V262 L300 252 V640z" fill="${W1}"/>
+ <g fill="${W3}"><circle cx="180" cy="466" r="24"/><rect x="158" y="488" width="44" height="152" rx="14"/></g>
+ <g fill="${W2}">
+  <circle cx="120" cy="518" r="18"/><rect x="104" y="534" width="32" height="106" rx="10"/>
+  <circle cx="240" cy="514" r="18"/><rect x="224" y="530" width="32" height="110" rx="10"/>
+  <circle cx="84" cy="558" r="15"/><rect x="70" y="572" width="28" height="68" rx="9"/>
+  <circle cx="276" cy="554" r="15"/><rect x="262" y="568" width="28" height="72" rx="9"/>
+  <circle cx="150" cy="584" r="14"/><circle cx="212" cy="588" r="14"/>
+ </g>`),
+
+/* 맑은 우물 — 지붕 얹은 우물, 맑게 반짝이는 수면 */
+winClean:scWrap(`
+ <ellipse cx="180" cy="330" rx="190" ry="150" fill="url(#sGlow)" opacity=".22"/>
+ <path d="M92 296 h176 l-22 -36 h-132z" fill="${W2}"/>
+ <rect x="112" y="296" width="10" height="160" fill="${W2}"/>
+ <rect x="238" y="296" width="10" height="160" fill="${W2}"/>
+ <rect x="176" y="304" width="8" height="76" fill="#3a2c16"/>
+ <path d="M158 380 h44 v32 q-22 12 -44 0z" fill="#8a6f3c"/>
+ <path d="M96 470 v86 q84 36 168 0 v-86" fill="${W1}"/>
+ <ellipse cx="180" cy="470" rx="104" ry="34" fill="${W1}"/>
+ <ellipse cx="180" cy="464" rx="86" ry="26" fill="#0d0a06"/>
+ <ellipse cx="180" cy="464" rx="64" ry="18" fill="#7fa8b8" opacity=".5"/>
+ <ellipse cx="162" cy="460" rx="20" ry="6" fill="#dcedf2" opacity=".75"/>`),
+
+/* 창끝의 질서 — 성문 앞에 도열한 창 */
+winIron:scWrap(`
+ <path d="M60 640 V250 Q60 150 180 146 Q300 150 300 250 V640 Z" fill="#0a0704"/>
+ <path d="M60 640 V250 Q60 150 180 146 Q300 150 300 250 V640 Z" fill="url(#sDawn)" opacity=".35"/>
+ <path d="M74 636 V262 L60 252 V640z" fill="${W1}"/>
+ <path d="M286 636 V262 L300 252 V640z" fill="${W1}"/>
+ <circle cx="180" cy="250" r="76" fill="url(#sGlow)" opacity=".6"/>
+ <g stroke="#6b5636" stroke-width="6" stroke-linecap="round">
+  <line x1="96" y1="640" x2="96" y2="336"/><line x1="150" y1="640" x2="150" y2="306"/>
+  <line x1="210" y1="640" x2="210" y2="306"/><line x1="264" y1="640" x2="264" y2="336"/>
+ </g>
+ <g fill="#b8b2a4">
+  <path d="M96 336 l-11 -14 11 -32 11 32z"/><path d="M150 306 l-11 -14 11 -32 11 32z"/>
+  <path d="M210 306 l-11 -14 11 -32 11 32z"/><path d="M264 336 l-11 -14 11 -32 11 32z"/>
+ </g>`),
+
 /* 꺼지지 않았던 촛불 — 열린 성문 앞, 도시를 지킨 큰 촛불 */
 winCure:scWrap(`
  <path d="M28 640 V240 Q28 120 180 116 Q332 120 332 240 V640 Z" fill="${W2}"/>
@@ -1385,9 +1459,25 @@ winCure:scWrap(`
  <path d="M180 262 q13 20 0 38 q-13 -18 0 -38z" fill="#fbe9c0"/>
  <circle cx="180" cy="286" r="90" fill="url(#sGlow)"/>
  <circle cx="180" cy="286" r="150" fill="url(#sGlow)" opacity=".5"/>
- <ellipse cx="180" cy="540" rx="120" ry="18" fill="#000" opacity=".45"/>`)
+ <ellipse cx="180" cy="540" rx="120" ry="18" fill="#000" opacity=".45"/>`),
+
+/* 잿더미의 아침 — 그을린 성문, 마지막 불씨와 연기 */
+winAshes:scWrap(`
+ <path d="M60 640 V250 Q60 150 180 146 Q300 150 300 250 V640 Z" fill="#0a0704"/>
+ <path d="M60 640 V250 Q60 150 180 146 Q300 150 300 250 V640 Z" fill="url(#sDawn)" opacity=".18"/>
+ <path d="M74 636 V262 L60 252 V640z" fill="${W1}"/>
+ <path d="M286 636 V262 L300 252 V640z" fill="${W1}"/>
+ <g fill="${W2}">
+  <path d="M90 640 l24 -68 22 68z"/><path d="M150 640 l30 -94 30 94z"/><path d="M228 640 l22 -58 20 58z"/>
+ </g>
+ <circle cx="180" cy="562" r="10" fill="#d97b34" opacity=".85"/>
+ <circle cx="180" cy="562" r="44" fill="url(#sGlow)" opacity=".55"/>
+ <g stroke="#4a4238" stroke-width="4" fill="none" opacity=".55" stroke-linecap="round">
+  <path d="M122 520 q14 -40 -6 -74 q-16 -30 4 -54"/>
+  <path d="M232 528 q-16 -44 6 -78 q14 -26 -4 -48"/>
+ </g>`)
 };
-const COL_ORDER=['win','winCure','f0','f1','m0','m1','h0','h1','t0','t1'];
+const COL_ORDER=['win','winFood','winPeople','winClean','winIron','winAshes','winCure','f0','f1','m0','m1','h0','h1','t0','t1'];
 
 /* ══════════ 저장소 (가능하면 기기 저장, 안 되면 세션 유지) ══════════ */
 const store={
@@ -1861,7 +1951,7 @@ function choose(i,btn,card){
         if(S[k]>=100)return ending(k+'1',true);
       }
       day++;
-      if(day>30)return ending(flags.cure?'winCure':'win',false);
+      if(day>30)return ending(winKey(),false);
       const na=actOf(day);
       if(na!==act){showAct(na,()=>beginDay());}
       else beginDay();
@@ -1899,6 +1989,14 @@ actOv.addEventListener('click',()=>{
   setTimeout(cb,450);
 });
 let lastEnd=null;
+function winKey(){
+  if(flags.cure)return 'winCure';
+  const e=[['f','winFood'],['m','winPeople'],['h','winClean'],['t','winIron']]
+    .map(([k,w])=>[Math.max(0,Math.min(100,S[k])),w]).sort((a,b)=>b[0]-a[0]);
+  if(e[0][0]<40)return 'winAshes';
+  if(e[0][0]>=60&&e[0][0]-e[1][0]>=12)return e[0][1];
+  return 'win';
+}
 function ending(key,death,byPressure){
   lastEnd={key,death,byPressure,act,day};
   renderEnding();
@@ -1923,9 +2021,7 @@ function renderEnding(){
   }
   const bod=(e.b[lastEnd.act]||e.b[2]||e.b);
   document.getElementById('endBody').textContent=T(bod.ko?bod:e.b);
-  document.getElementById('endDays').textContent=death
-    ?(byPressure?UI.diedDawn[LANG](lastEnd.day):UI.diedNight[LANG](lastEnd.day))
-    :(T(UI.diffName[DIFF])+' · '+T(UI.survived).replace(/^— /,'')).replace(/^/,'— ');
+  document.getElementById('endDays').textContent=death?'':T(UI.survived);
 }
 /* ══════════ 언어 전환 ══════════ */
 function applyLang(l){

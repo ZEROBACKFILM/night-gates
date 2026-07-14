@@ -1,5 +1,5 @@
 /* 성문이 닫힌 밤 — 오프라인 캐시 */
-const CACHE = 'sgdn-v1';
+const CACHE = 'sgdn-v2';
 const ASSETS = ['./', './index.html', './manifest.json',
   './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => {
